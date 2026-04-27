@@ -1,0 +1,26 @@
+
+> hrs-frontend@0.1.0 dev
+> next dev
+
+⚠ Port 3000 is in use by an unknown process, using available port 3001 instead.
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://10.49.89.46:3001
+✓ Ready in 483ms
+
+○ Compiling / ...
+ GET / 200 in 4.5s (next.js: 4.3s, application-code: 257ms)
+React does not recognize the `activeTab` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `activetab` instead. If you accidentally passed it from a parent component, remove it from the DOM element.
+React does not recognize the `setActiveTab` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `setactivetab` instead. If you accidentally passed it from a parent component, remove it from the DOM element.
+ GET /client 200 in 710ms (next.js: 654ms, application-code: 56ms)
+ GET /host 200 in 876ms (next.js: 765ms, application-code: 111ms)
+ GET /provider 200 in 771ms (next.js: 681ms, application-code: 90ms)
+ GET /admin 200 in 795ms (next.js: 708ms, application-code: 87ms)
+ GET /login 200 in 781ms (next.js: 670ms, application-code: 111ms)
+ GET /register 200 in 752ms (next.js: 657ms, application-code: 94ms)
+ GET /listings/l1 200 in 1194ms (next.js: 1129ms, application-code: 66ms)
+ GET /services/s1 200 in 1173ms (next.js: 1097ms, application-code: 75ms)
+ GET /about 200 in 699ms (next.js: 621ms, application-code: 78ms)
+ GET / 200 in 102ms (next.js: 7ms, application-code: 95ms)
+ GET /client 200 in 98ms (next.js: 3ms, application-code: 95ms)
+[?25h
