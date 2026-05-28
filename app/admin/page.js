@@ -1,26 +1,51 @@
-"use client"
-import * as React from "react"
-import { motion } from "framer-motion"
-import { Users, Building, Wrench, AlertTriangle, ShieldCheck, FileText } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card"
-import { Button } from "@/components/ui/Button"
-import { Badge } from "@/components/ui/Badge"
-import { contracts, users, listings, services } from "@/lib/mockData"
+'use client'
+
+import * as React from 'react'
+import { motion } from 'framer-motion'
+import { Users, Building, Wrench, AlertTriangle, ShieldCheck, FileText } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { contracts, users, listings, services } from '@/lib/mockData'
+import { useAuth } from '@/app/contexts/AuthContext'
+import { useRouter } from 'next/navigation'
 
 export default function AdminDashboard() {
+  const { user, logout, loading } = useAuth()
+  const router = useRouter()
+
+  React.useEffect(() => {
+    if (!loading && (!user || user.role !== 'admin')) {
+      router.push('/login')
+    }
+  }, [user, loading, router])
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/')
+  }
+
   const kpis = [
-    { title: "Utilisateurs Actifs", value: users.length.toString(), icon: Users, color: "text-blue-500", bg: "bg-blue-50" },
-    { title: "Logements Publiés", value: listings.length.toString(), icon: Building, color: "text-green-500", bg: "bg-green-50" },
-    { title: "Services Proposés", value: services.length.toString(), icon: Wrench, color: "text-purple-500", bg: "bg-purple-50" },
-    { title: "Contrats", value: contracts.length.toString(), icon: FileText, color: "text-terracotta-500", bg: "bg-terracotta-50" },
+    { title: 'Utilisateurs Actifs', value: users.length.toString(), icon: Users, color: 'text-blue-500', bg: 'bg-blue-50' },
+    { title: 'Logements Publiés', value: listings.length.toString(), icon: Building, color: 'text-green-500', bg: 'bg-green-50' },
+    { title: 'Services Proposés', value: services.length.toString(), icon: Wrench, color: 'text-purple-500', bg: 'bg-purple-50' },
+    { title: 'Contrats', value: contracts.length.toString(), icon: FileText, color: 'text-terracotta-500', bg: 'bg-terracotta-50' },
   ]
 
   // Fonction pour résoudre les noms (simulation de relations BDD)
-  const getClientName = (id) => users.find(u => u.id === id)?.username || id
-  const getProviderName = (id) => users.find(u => u.id === id)?.username || id
+  const getClientName = (id) => users.find((u) => u.id === id)?.username || id
+  const getProviderName = (id) => users.find((u) => u.id === id)?.username || id
   const getEntityName = (id, type) => {
-    if (type === 'Logement') return listings.find(l => l.id === id)?.title || id
-    return services.find(s => s.id === id)?.title || id
+    if (type === 'Logement') return listings.find((l) => l.id === id)?.title || id
+    return services.find((s) => s.id === id)?.title || id
+  }
+
+  if (loading) {
+    return <div className="p-8">Chargement…</div>
+  }
+
+  if (!user || user.role !== 'admin') {
+    return <div className="p-8">Accès non autorisé</div>
   }
 
   return (
@@ -29,6 +54,9 @@ export default function AdminDashboard() {
         <h1 className="text-3xl font-bold text-charcoal-900 flex items-center gap-3">
           <ShieldCheck className="h-8 w-8 text-terracotta-500" /> Administration H&R&S
         </h1>
+        <Button variant="secondary" onClick={handleLogout}>
+          Se déconnecter
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">

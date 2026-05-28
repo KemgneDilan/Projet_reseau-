@@ -3,7 +3,7 @@ import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { useAuth } from "@/lib/auth"
+import { useAuth } from "@/app/contexts/AuthContext"
 import { Button } from "@/components/ui/Button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card"
 import { Input } from "@/components/ui/Input"
@@ -13,24 +13,86 @@ export default function RegisterPage() {
   const router = useRouter()
   const [formData, setFormData] = React.useState({
     username: "",
+    email: "",
     phone: "",
     password: "",
     city: "",
     role: "client"
   })
-  const [error, setError] = React.useState("")
+  const [errors, setErrors] = React.useState({})
+  const [loading, setLoading] = React.useState(false)
 
-  const handleSubmit = (e) => {
+  /**
+   * Valide les données du formulaire
+   * @returns {boolean} True si les données sont valides
+   */
+  const validateForm = () => {
+    const newErrors = {}
+
+    // Validation du nom d'utilisateur
+    if (!formData.username?.trim()) {
+      newErrors.username = "Le nom d'utilisateur est obligatoire"
+    }
+
+    // Validation de l'email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!formData.email?.trim()) {
+      newErrors.email = "L'adresse email est obligatoire"
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = "Veuillez entrer une adresse email valide"
+    }
+
+    // Validation du téléphone (chiffres uniquement)
+    if (!formData.phone?.trim()) {
+      newErrors.phone = "Le numéro de téléphone est obligatoire"
+    } else if (!/^\d+$/.test(formData.phone.trim())) {
+      newErrors.phone = "Le numéro de téléphone ne doit contenir que des chiffres"
+    } else if (formData.phone.trim().length < 8) {
+      newErrors.phone = "Le numéro de téléphone doit contenir au moins 8 chiffres"
+    }
+
+    // Validation du mot de passe
+    if (!formData.password?.trim()) {
+      newErrors.password = "Le mot de passe est obligatoire"
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Le mot de passe doit contenir au moins 6 caractères"
+    }
+
+    // Validation de la ville
+    if (!formData.city?.trim()) {
+      newErrors.city = "La ville est obligatoire"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!formData.username || !formData.phone || !formData.password || !formData.city) {
-      setError("Tous les champs sont obligatoires.")
+    
+    if (!validateForm()) {
       return
     }
-    const res = register(formData)
-    if (res.success) {
-      router.push(`/${res.user.role}`)
-    } else {
-      setError(res.message)
+
+    setLoading(true)
+    try {
+      const user = await register(formData)
+      router.push(`/${user.role}`)
+    } catch (err) {
+      setErrors({ form: err.message || "Une erreur est survenue lors de l'inscription." })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  /**
+   * Gère le changement d'un champ du formulaire
+   */
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+    // Effacer l'erreur quand l'utilisateur commence à taper
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: "" }))
     }
   }
 
@@ -43,55 +105,106 @@ export default function RegisterPage() {
             <CardDescription>Rejoignez H&R&S et découvrez des lieux uniques.</CardDescription>
           </CardHeader>
           <CardContent>
-            {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-md text-sm">{error}</div>}
+            {errors.form && (
+              <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-md text-sm border border-red-200">
+                {errors.form}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Sélection du rôle */}
               <div>
                 <label className="block text-sm font-medium text-charcoal-700 mb-1">Je souhaite m'inscrire en tant que :</label>
                 <select 
                   className="w-full h-10 rounded-md border border-charcoal-200 bg-white px-3 text-sm focus:ring-2 focus:ring-terracotta-500 outline-none"
                   value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  onChange={(e) => handleChange('role', e.target.value)}
                 >
                   <option value="client">Client (Louer & Réserver)</option>
                   <option value="host">Hôte (Proposer un logement)</option>
                   <option value="provider">Prestataire (Proposer des services)</option>
                 </select>
               </div>
+
+              {/* Nom d'utilisateur */}
               <div>
-                <label className="block text-sm font-medium text-charcoal-700 mb-1">Nom d'utilisateur</label>
+                <label className="block text-sm font-medium text-charcoal-700 mb-1">
+                  Nom d'utilisateur *
+                </label>
                 <Input 
                   placeholder="Ex: Dilan" 
                   value={formData.username}
-                  onChange={(e) => setFormData({...formData, username: e.target.value})}
+                  onChange={(e) => handleChange('username', e.target.value)}
+                  className={errors.username ? "border-red-500" : ""}
                 />
+                {errors.username && <p className="text-xs text-red-600 mt-1">{errors.username}</p>}
               </div>
+
+              {/* Email - NOUVEAU CHAMP */}
               <div>
-                <label className="block text-sm font-medium text-charcoal-700 mb-1">Téléphone</label>
+                <label className="block text-sm font-medium text-charcoal-700 mb-1">
+                  Adresse email *
+                </label>
+                <Input 
+                  type="email"
+                  placeholder="Ex: votre@email.com" 
+                  value={formData.email}
+                  onChange={(e) => handleChange('email', e.target.value)}
+                  className={errors.email ? "border-red-500" : ""}
+                />
+                {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
+              </div>
+
+              {/* Téléphone avec validation */}
+              <div>
+                <label className="block text-sm font-medium text-charcoal-700 mb-1">
+                  Numéro de téléphone (chiffres uniquement) *
+                </label>
                 <Input 
                   type="tel" 
-                  placeholder="Ex: 6XXXXXXXX" 
+                  placeholder="Ex: 237699887766" 
                   value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  onChange={(e) => handleChange('phone', e.target.value)}
+                  className={errors.phone ? "border-red-500" : ""}
                 />
+                {errors.phone && <p className="text-xs text-red-600 mt-1">{errors.phone}</p>}
               </div>
+
+              {/* Ville */}
               <div>
-                <label className="block text-sm font-medium text-charcoal-700 mb-1">Ville</label>
+                <label className="block text-sm font-medium text-charcoal-700 mb-1">
+                  Ville *
+                </label>
                 <Input 
                   placeholder="Ex: Yaoundé" 
                   value={formData.city}
-                  onChange={(e) => setFormData({...formData, city: e.target.value})}
+                  onChange={(e) => handleChange('city', e.target.value)}
+                  className={errors.city ? "border-red-500" : ""}
                 />
+                {errors.city && <p className="text-xs text-red-600 mt-1">{errors.city}</p>}
               </div>
+
+              {/* Mot de passe */}
               <div>
-                <label className="block text-sm font-medium text-charcoal-700 mb-1">Mot de passe</label>
+                <label className="block text-sm font-medium text-charcoal-700 mb-1">
+                  Mot de passe (min. 6 caractères) *
+                </label>
                 <Input 
                   type="password" 
                   placeholder="••••••••" 
                   value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  onChange={(e) => handleChange('password', e.target.value)}
+                  className={errors.password ? "border-red-500" : ""}
                 />
+                {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password}</p>}
               </div>
-              <Button type="submit" className="w-full h-12 text-lg mt-2">S'inscrire</Button>
+
+              <Button 
+                type="submit" 
+                className="w-full h-12 text-lg mt-2" 
+                disabled={loading}
+              >
+                {loading ? "Inscription en cours..." : "S'inscrire"}
+              </Button>
             </form>
             <div className="mt-6 text-center text-sm text-charcoal-500">
               Déjà un compte ? <Link href="/login" className="text-terracotta-600 font-semibold hover:underline">Se connecter</Link>

@@ -1,7 +1,8 @@
 "use client"
 import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
-import { services, reviews as allReviews } from "@/lib/mockData"
+import { services } from "@/lib/mockData"
+import { getReviewsFor, calculateAverageRating } from '@/lib/ratingUtils'
 import { MapPin, Star, Share, Heart, ChevronLeft, MessageSquare, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { ReviewSection } from "@/components/ui/ReviewSection"
@@ -13,7 +14,26 @@ export default function ServicePage() {
   const [isMessagingOpen, setIsMessagingOpen] = React.useState(false)
 
   const service = services.find(s => s.id === id)
-  const reviews = allReviews.filter(r => r.targetId === id)
+  const [reviews, setReviews] = React.useState(() => {
+    try {
+      return getReviewsFor('service', id)
+    } catch (e) {
+      return []
+    }
+  })
+
+  React.useEffect(() => {
+    const handler = (ev) => {
+      const detail = ev?.detail || {}
+      if (detail?.targetType === 'service' && String(detail?.targetId) === String(id)) {
+        try {
+          setReviews(getReviewsFor('service', id))
+        } catch (e) {}
+      }
+    }
+    window.addEventListener('hrs:review-added', handler)
+    return () => window.removeEventListener('hrs:review-added', handler)
+  }, [id])
 
   if (!service) return <div className="p-8 text-center">Service introuvable</div>
 
@@ -36,10 +56,17 @@ export default function ServicePage() {
             <Button variant="outline" size="sm" className="hidden sm:flex"><Heart className="mr-2 h-4 w-4" /> Sauvegarder</Button>
           </div>
         </div>
-        <div className="flex items-center space-x-4 text-sm text-charcoal-600">
+          <div className="flex items-center space-x-4 text-sm text-charcoal-600">
           <div className="flex items-center font-semibold text-charcoal-900">
             <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
-            {service.rating} ({service.reviewsCount} avis)
+            {(() => {
+              try {
+                const avg = calculateAverageRating(reviews.map(r => ({ rating: r.rating }))) || service.rating || 0
+                return `${Number(avg).toFixed(1)} (${reviews.length} avis)`
+              } catch (e) {
+                return `${service.rating} (${service.reviewsCount} avis)`
+              }
+            })()}
           </div>
         </div>
       </div>
@@ -76,7 +103,14 @@ export default function ServicePage() {
           <section className="border-t border-charcoal-100 pt-8">
             <h2 className="text-xl font-bold text-charcoal-900 mb-6 flex items-center">
               <Star className="h-5 w-5 text-yellow-500 fill-current mr-2" />
-              {service.rating} · {service.reviewsCount} commentaires
+              {(() => {
+                try {
+                  const avg = calculateAverageRating(reviews.map(r => ({ rating: r.rating }))) || service.rating || 0
+                  return `${Number(avg).toFixed(1)} · ${reviews.length} commentaires`
+                } catch (e) {
+                  return `${service.rating} · ${service.reviewsCount} commentaires`
+                }
+              })()}
             </h2>
             <ReviewSection reviews={reviews} />
           </section>
