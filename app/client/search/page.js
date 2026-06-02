@@ -11,14 +11,14 @@ import { listings, services } from "@/lib/mockData"
 import { getReviewsFor, calculateAverageRating } from '@/lib/ratingUtils'
 
 export default function ClientSearchPage() {
-  const [results, setResults] = React.useState(listings)
+  const [results, setResults] = React.useState(() => listings.map((l) => ({ type: 'listing', data: l })))
   const [searchTarget, setSearchTarget] = React.useState('listings') // listings | services | both
   const [searchMode, setSearchMode] = React.useState('keywords') // keywords | filters
   const [showFilters, setShowFilters] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(false)
   const [filters, setFilters] = React.useState({
     priceMin: 0,
-    priceMax: 5000,
+    priceMax: 15000,
     rating: 0,
     amenities: [],
   })
@@ -161,12 +161,12 @@ export default function ClientSearchPage() {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-charcoal-600">
-                        {filters.priceMin}€
+                        {filters.priceMin} FCFA
                       </span>
                       <input
                         type="range"
                         min="0"
-                        max="5000"
+                        max="15000"
                         value={filters.priceMin}
                         onChange={(e) =>
                           handleFilterChange("priceMin", parseInt(e.target.value))
@@ -176,12 +176,12 @@ export default function ClientSearchPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-charcoal-600">
-                        {filters.priceMax}€
+                        {filters.priceMax} FCFA
                       </span>
                       <input
                         type="range"
                         min="0"
-                        max="5000"
+                        max="15000"
                         value={filters.priceMax}
                         onChange={(e) =>
                           handleFilterChange("priceMax", parseInt(e.target.value))

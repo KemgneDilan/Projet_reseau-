@@ -40,7 +40,7 @@ export function Footer() {
               <div className="bg-gradient-to-br from-terracotta-500 to-orange-500 text-white p-2 rounded-lg">
                 <Home className="h-6 w-6" />
               </div>
-              <span className="text-xl font-bold">H&R&S</span>
+              <span className="text-xl font-bold">Loomdaah</span>
             </div>
             <p className="text-charcoal-400 text-sm mb-6">
               {t('footer_desc')}
@@ -152,7 +152,7 @@ export function Footer() {
         <div className="border-t border-charcoal-800 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between text-charcoal-400 text-sm">
             <p>
-              © {currentYear} H&R&S Platform. {t('footer_rights')}
+              © {currentYear} Loomdaah. {t('footer_rights')}
             </p>
             <div className="flex gap-6 mt-4 md:mt-0">
               <Link href="/terms" className="hover:text-terracotta-400 transition-colors">

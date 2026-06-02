@@ -2,7 +2,7 @@
 import React, { useState } from "react"
 import { motion } from "framer-motion"
 import { GoogleMap, useJsApiLoader, Marker, Autocomplete } from "@react-google-maps/api"
-import { MapPin, Save, ArrowLeft, Upload, Trash, Check, Info } from "lucide-react"
+import { MapPin, Save, ArrowLeft, Upload, Trash, Check, Info, Plus } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import Link from "next/link"
@@ -45,12 +45,20 @@ export default function NewListingPage() {
     title: "",
     description: "",
     price: "",
+    surfaceArea: "",
     location: "",
     lat: defaultCenter.lat,
     lng: defaultCenter.lng,
     images: [],
     amenities: ["Climatisation", "Wifi Fibre", "Gardiennage 24h/24"] // Checked by default
   })
+
+  // Nouvelle logique: type de création - 'house' (maison composée de chambres) ou 'room' (chambre seule)
+  const [listingKind, setListingKind] = useState('house')
+  const [roomsList, setRoomsList] = useState([]) // { title, price, surfaceArea }
+  const [newRoomTitle, setNewRoomTitle] = useState('')
+  const [newRoomPrice, setNewRoomPrice] = useState('')
+  const [newRoomSurface, setNewRoomSurface] = useState('')
 
   const [autocomplete, setAutocomplete] = useState(null)
   const [map, setMap] = useState(null)
@@ -147,32 +155,161 @@ export default function NewListingPage() {
     const hostUser = JSON.parse(localStorage.getItem('hrs_user') || '{}')
     const hostId = hostUser.id || 'u2'
 
+    // If creating a house, ensure at least one room and house configuration is complete
+    if (listingKind === 'house') {
+      if (roomsList.length === 0) {
+        alert('Une maison doit contenir au moins une chambre. Ajoutez une chambre avant de publier.')
+        setActiveFormTab('details')
+        return
+      }
+      if (!formData.surfaceArea || Number(formData.surfaceArea) < 1) {
+        alert('Veuillez indiquer la surface totale de la maison en mètres carrés.')
+        setActiveFormTab('details')
+        return
+      }
+      const totalRoomsSurface = roomsList.reduce((sum, room) => sum + Number(room.surfaceArea || 0), 0)
+      if (Number(formData.surfaceArea) < totalRoomsSurface) {
+        alert('La surface totale de la maison doit couvrir la somme des surfaces des chambres.')
+        setActiveFormTab('details')
+        return
+      }
+      if (Number(formData.price) > 15000) {
+        alert('Le prix par nuit pour une maison complète ne peut pas dépasser 15000 FCFA.')
+        setActiveFormTab('details')
+        return
+      }
+    }
+
+    if (listingKind === 'room') {
+      if (!formData.surfaceArea || Number(formData.surfaceArea) < 1) {
+        alert('Veuillez indiquer la surface de la chambre en mètres carrés.')
+        setActiveFormTab('details')
+        return
+      }
+      if (Number(formData.price) > 3000) {
+        alert('Le prix par nuit pour une chambre ne peut pas dépasser 3000 FCFA.')
+        setActiveFormTab('details')
+        return
+      }
+    }
+
+    const timestamp = Date.now()
+
+    // If house => create house and rooms entries in localStorage
+    if (listingKind === 'house') {
+      const houseId = `h_${timestamp}`
+      const createdRooms = roomsList.map((r, idx) => ({
+        id: `r_${timestamp}_${idx}`,
+        houseId,
+        hostId,
+        title: r.title,
+        description: r.description || formData.description,
+        price: parseFloat(r.price),
+        surfaceArea: Number(r.surfaceArea),
+        currency: 'XAF',
+        status: 'active',
+        images: r.images && r.images.length > 0 ? r.images : (formData.images.length > 0 ? formData.images : ['https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=800&q=80']),
+        amenities: formData.amenities
+      }))
+
+      const newHouse = {
+        id: houseId,
+        hostId,
+        title: formData.title || `Maison ${timestamp}`,
+        description: formData.description,
+        city: formData.city || 'Yaoundé',
+        location: formData.location || 'Inconnue',
+        lat: formData.lat,
+        lng: formData.lng,
+        currency: 'XAF',
+        images: formData.images.length > 0 ? formData.images : [],
+        amenities: formData.amenities,
+        roomsIds: createdRooms.map(r => r.id),
+        numberOfRooms: createdRooms.length,
+        surfaceArea: Number(formData.surfaceArea) || 0,
+        price: parseFloat(formData.price || 0),
+        status: 'active'
+      }
+
+      // Persist houses for this host and globally
+      const housesKey = `hrs_houses_${hostId}`
+      const prevHouses = JSON.parse(localStorage.getItem(housesKey) || '[]')
+      localStorage.setItem(housesKey, JSON.stringify([newHouse, ...prevHouses]))
+      const globalHouses = JSON.parse(localStorage.getItem('hrs_houses') || '[]')
+      localStorage.setItem('hrs_houses', JSON.stringify([newHouse, ...globalHouses]))
+
+      // Persist rooms for this host and globally
+      const roomsKey = `hrs_rooms_${hostId}`
+      const prevRooms = JSON.parse(localStorage.getItem(roomsKey) || '[]')
+      localStorage.setItem(roomsKey, JSON.stringify([...createdRooms, ...prevRooms]))
+      const globalRooms = JSON.parse(localStorage.getItem('hrs_rooms') || '[]')
+      localStorage.setItem('hrs_rooms', JSON.stringify([...createdRooms, ...globalRooms]))
+
+      // Also create a legacy listing entry for the house overview
+      const newListing = {
+        id: `l_house_${houseId}`,
+        hostId,
+        title: newHouse.title,
+        description: newHouse.description,
+        price: parseFloat(formData.price || 0),
+        currency: 'XAF',
+        rating: 5.0,
+        reviewsCount: 0,
+        location: newHouse.location,
+        city: newHouse.city,
+        lat: newHouse.lat,
+        lng: newHouse.lng,
+        type: 'House',
+        status: 'active',
+        images: newHouse.images,
+        amenities: newHouse.amenities,
+        roomsCount: createdRooms.length,
+        numberOfRooms: newHouse.numberOfRooms,
+        surfaceArea: newHouse.surfaceArea
+      }
+
+      const localKey = `hrs_listings_${hostId}`
+      const previousListings = JSON.parse(localStorage.getItem(localKey) || '[]')
+      const updatedListings = [newListing, ...previousListings]
+      localStorage.setItem(localKey, JSON.stringify(updatedListings))
+      const globalListings = JSON.parse(localStorage.getItem('hrs_listings') || '[]')
+      localStorage.setItem('hrs_listings', JSON.stringify([newListing, ...globalListings]))
+
+      alert('Maison et chambres enregistrées avec succès !')
+      router.push('/host')
+      return
+    }
+
+    // Else creating a single room listing
     const newListing = {
-      id: `l_${Date.now()}`,
+      id: `l_${timestamp}`,
       hostId,
       title: formData.title,
       description: formData.description,
       price: parseFloat(formData.price),
-      currency: "XAF", // Default is XAF
+      surfaceArea: Number(formData.surfaceArea) || 0,
+      currency: "XAF",
       rating: 5.0,
       reviewsCount: 0,
       location: formData.location || "Melen, Yaoundé",
       city: "Yaoundé",
       lat: formData.lat,
       lng: formData.lng,
-      type: "Logement",
+      type: "Room",
       status: "active",
       images: formData.images.length > 0 ? formData.images : ['https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80'],
       amenities: formData.amenities
     }
 
-    // Retrieve previous listings
+    // Persist listing for this host and globally
     const localKey = `hrs_listings_${hostId}`
     const previousListings = JSON.parse(localStorage.getItem(localKey) || '[]')
     const updatedListings = [newListing, ...previousListings]
     localStorage.setItem(localKey, JSON.stringify(updatedListings))
+    const globalListings = JSON.parse(localStorage.getItem('hrs_listings') || '[]')
+    localStorage.setItem('hrs_listings', JSON.stringify([newListing, ...globalListings]))
 
-    alert("Annonce enregistrée avec succès en FCFA !")
+    alert("Chambre enregistrée avec succès !")
     router.push('/host')
   }
 
@@ -234,7 +371,7 @@ export default function NewListingPage() {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Titre de l'annonce</label>
+                    <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Titre de l&apos;annonce</label>
                     <Input 
                       required
                       placeholder="Ex: Superbe appartement haut standing au quartier Bastos" 
@@ -254,16 +391,129 @@ export default function NewListingPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Prix par nuit (FCFA)</label>
+                    <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">
+                      {listingKind === 'house' ? 'Prix par nuit (maison complète, max 15000 FCFA)' : 'Prix par nuit (chambre, max 3000 FCFA)'}
+                    </label>
                     <Input 
                       type="number"
                       required
-                      placeholder="Ex: 50000" 
+                      placeholder={listingKind === 'house' ? 'Ex: 15000' : 'Ex: 3000'}
                       value={formData.price}
                       onChange={e => setFormData({...formData, price: e.target.value})}
                       className="bg-white dark:bg-charcoal-800 font-semibold"
                     />
                   </div>
+                  {listingKind === 'room' && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Surface de la chambre (m²)</label>
+                      <Input
+                        type="number"
+                        required
+                        min={1}
+                        placeholder="Ex: 16"
+                        value={formData.surfaceArea}
+                        onChange={e => setFormData({...formData, surfaceArea: e.target.value})}
+                        className="bg-white dark:bg-charcoal-800"
+                      />
+                    </div>
+                  )}
+                  {listingKind === 'house' && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Surface totale (m²)</label>
+                      <Input
+                        type="number"
+                        required
+                        min={1}
+                        placeholder="Ex: 120"
+                        value={formData.surfaceArea}
+                        onChange={e => setFormData({...formData, surfaceArea: e.target.value})}
+                        className="bg-white dark:bg-charcoal-800"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Choix: Maison ou Chambre */}
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Type d&apos;annonce</label>
+                    <div className="mt-2 flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setListingKind('house')}
+                        className={`px-4 py-2 rounded-lg border transition ${listingKind === 'house' ? 'bg-terracotta-50/10 border-terracotta-500 text-terracotta-700' : 'bg-white dark:bg-charcoal-800 border-charcoal-200'}`}
+                      >
+                        Maison (plusieurs chambres)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setListingKind('room')}
+                        className={`px-4 py-2 rounded-lg border transition ${listingKind === 'room' ? 'bg-terracotta-50/10 border-terracotta-500 text-terracotta-700' : 'bg-white dark:bg-charcoal-800 border-charcoal-200'}`}
+                      >
+                        Chambre seule
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Editor des chambres si maison */}
+                  {listingKind === 'house' && (
+                    <div className="md:col-span-2 pt-4 border-t border-charcoal-100 dark:border-charcoal-800">
+                      <h3 className="text-sm font-semibold text-charcoal-800 dark:text-white mb-2">Chambres de la maison</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                        <div>
+                          <label className="text-xs text-charcoal-600">Titre chambre</label>
+                          <Input value={newRoomTitle} onChange={e => setNewRoomTitle(e.target.value)} placeholder="Ex: Chambre Master" />
+                        </div>
+                        <div>
+                          <label className="text-xs text-charcoal-600">Prix par nuit (FCFA)</label>
+                          <Input type="number" value={newRoomPrice} onChange={e => setNewRoomPrice(e.target.value)} placeholder="Ex: 3000" />
+                        </div>
+                        <div>
+                          <label className="text-xs text-charcoal-600">Surface (m²)</label>
+                          <Input type="number" value={newRoomSurface} onChange={e => setNewRoomSurface(e.target.value)} placeholder="Ex: 16" />
+                        </div>
+                        <div className="flex gap-2">
+                          <button type="button" onClick={() => {
+                            if (!newRoomTitle || !newRoomPrice || !newRoomSurface) {
+                              alert('Veuillez renseigner le titre, le prix et la surface de la chambre.')
+                              return
+                            }
+                            if (Number(newRoomPrice) > 3000) {
+                              alert('Le prix par nuit d\'une chambre ne peut pas dépasser 3000 FCFA.')
+                              return
+                            }
+                            if (Number(newRoomSurface) <= 0) {
+                              alert('La surface de la chambre doit être supérieure à 0 m².')
+                              return
+                            }
+                            setRoomsList(prev => [...prev, { title: newRoomTitle, price: newRoomPrice, surfaceArea: newRoomSurface }])
+                            setNewRoomTitle('')
+                            setNewRoomPrice('')
+                            setNewRoomSurface('')
+                          }} className="px-4 py-2 inline-flex items-center gap-2 rounded-lg bg-terracotta-500 text-white">
+                            <Plus className="h-4 w-4" /> Ajouter
+                          </button>
+                          <button type="button" onClick={() => { setNewRoomTitle(''); setNewRoomPrice(''); setNewRoomSurface('') }} className="px-3 py-2 rounded-lg border">Effacer</button>
+                        </div>
+                      </div>
+
+                      {roomsList.length > 0 && (
+                        <div className="mt-4 grid gap-2">
+                          {roomsList.map((r, idx) => (
+                            <div key={idx} className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-white dark:bg-charcoal-800">
+                              <div>
+                                <div className="font-medium">{r.title}</div>
+                                <div className="text-sm text-charcoal-500">
+                                  {parseFloat(r.price).toLocaleString()} {r.currency || 'XAF'} · {r.surfaceArea} m²
+                                </div>
+                              </div>
+                              <div>
+                                <button type="button" onClick={() => setRoomsList(prev => prev.filter((_, i) => i !== idx))} className="p-2 rounded bg-red-600 text-white"><Trash className="h-4 w-4" /></button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -394,7 +644,7 @@ export default function NewListingPage() {
                   Localisation Géologique
                 </h2>
                 <p className="text-sm text-charcoal-500 dark:text-charcoal-400">
-                  Entrez l'adresse de votre logement puis déplacez le marqueur sur la carte pour plus de précision.
+                  Entrez l&apos;adresse de votre logement puis déplacez le marqueur sur la carte pour plus de précision.
                 </p>
               </div>
 
@@ -474,7 +724,7 @@ export default function NewListingPage() {
                 </Button>
               ) : (
                 <Button type="submit">
-                  <Save className="h-5 w-5 mr-2" /> Enregistrer l'annonce
+                  <Save className="h-5 w-5 mr-2" /> Enregistrer l&apos;annonce
                 </Button>
               )}
             </div>

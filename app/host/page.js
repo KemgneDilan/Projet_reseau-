@@ -262,14 +262,6 @@ export default function HostDashboard() {
           <Button variant="outline" onClick={handleBack} className="gap-2 border-charcoal-300 dark:border-charcoal-700">
             <ArrowLeft className="h-4 w-4" /> {t('host_back')}
           </Button>
-          <Link href="/host/listings/new">
-            <Button className="gap-2 bg-terracotta-500 hover:bg-terracotta-600 text-white font-medium shadow-md">
-              <Plus className="h-4 w-4" /> {t('host_new_listing')}
-            </Button>
-          </Link>
-          <Button variant="outline" onClick={handleLogout} className="border-charcoal-300 dark:border-charcoal-700">
-            {t('host_logout')}
-          </Button>
         </div>
       </div>
 

@@ -39,7 +39,7 @@ export function Navbar() {
                 <Home className="h-6 w-6" />
               </div>
               <span className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-terracotta-600 to-orange-600 hidden sm:block">
-                H&R&S
+                Loomdaah
               </span>
             </Link>
           </div>

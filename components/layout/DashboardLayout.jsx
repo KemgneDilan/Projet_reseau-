@@ -14,8 +14,8 @@ export function DashboardLayout({ children }) {
   const { user, logout } = useAuth()
   const { t } = useLanguage()
   const pathname = usePathname()
-  // True by default so the sidebar is visible on load (desktop), can be collapsed by clicking toggle.
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  // Controls the mobile dropdown menu state; desktop navigation is always visible.
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   // Define sidebar links based on role
   const getSidebarLinks = () => {
@@ -32,7 +32,7 @@ export function DashboardLayout({ children }) {
         ]
       case 'host':
         return [
-          { href: '/host', label: t('tab_reservations'), icon: LayoutDashboard },
+          { href: '/host', label: t('host_dashboard'), icon: LayoutDashboard },
           { href: '/host/listings/new', label: t('host_new_listing'), icon: PlusIcon },
           { href: '/host#reservations', label: t('host_res_received'), icon: Calendar },
           { href: '/host#finances', label: t('host_finances_title'), icon: CreditCard },
@@ -42,7 +42,7 @@ export function DashboardLayout({ children }) {
       case 'provider':
         return [
           { href: '/provider', label: 'Tableau de bord', icon: LayoutDashboard },
-          { href: '/provider', label: t('provider_services'), icon: Briefcase },
+          { href: '/provider#services', label: t('provider_services'), icon: Briefcase },
           { href: '/provider#commandes', label: 'Commandes', icon: Calendar },
           { href: '/provider#finances', label: t('provider_finances_title'), icon: CreditCard },
           { href: '/messages', label: t('nav_messages'), icon: MessageSquare },
@@ -86,126 +86,108 @@ export function DashboardLayout({ children }) {
   const router = useRouter()
 
   return (
-    <div className="flex h-screen bg-charcoal-50 dark:bg-charcoal-950 font-sans">
-      
-      {/* Mobile Sidebar Overlay */}
-      <AnimatePresence>
-        {isSidebarOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-charcoal-900/50 z-40 lg:hidden"
-            onClick={() => setIsSidebarOpen(false)}
-          />
-        )}
-      </AnimatePresence>
+    <div className="min-h-screen flex flex-col bg-charcoal-50 dark:bg-charcoal-950 font-sans">
+      <header className="sticky top-0 z-30 bg-white dark:bg-charcoal-950 border-b border-charcoal-200 dark:border-charcoal-800">
+        <div className="mx-auto flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="bg-terracotta-500 p-2 rounded-lg shadow-sm">
+                <Home className="h-6 w-6 text-white" />
+              </div>
+              <span className="font-bold text-lg text-charcoal-900 dark:text-white">Loomdaah</span>
+            </Link>
 
-      {/* Collapsible Sidebar */}
-      <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 bg-white dark:bg-charcoal-900 border-r border-charcoal-200 dark:border-charcoal-800 transition-all duration-300 ease-in-out flex flex-col overflow-hidden shrink-0 ${
-          isSidebarOpen ? "w-64 translate-x-0" : "w-0 -translate-x-full lg:w-0 lg:border-none"
-        }`}
-      >
-        <div className="h-16 flex items-center px-6 border-b border-charcoal-200 dark:border-charcoal-800 shrink-0">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="bg-terracotta-500 p-1.5 rounded-lg">
-              <Home className="h-6 w-6 text-white" />
-            </div>
-            <span className="font-bold text-xl text-charcoal-900 dark:text-white">
-              H&R&S
-            </span>
-          </Link>
-        </div>
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="inline-flex items-center justify-center rounded-lg border border-charcoal-200 dark:border-charcoal-700 bg-white dark:bg-charcoal-900 p-2 text-charcoal-700 dark:text-charcoal-200 hover:bg-charcoal-50 dark:hover:bg-charcoal-800 transition-colors lg:hidden"
+              aria-label="Ouvrir le menu"
+            >
+              {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
 
-        <div className="flex-1 overflow-y-auto py-4">
-          <div className="px-4 space-y-1">
+          <nav className="hidden lg:flex items-center gap-2 overflow-x-auto py-1">
             {links.map((link) => {
               const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`)
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  onClick={() => {
-                    // Only auto-close on mobile screen sizes
-                    if (window.innerWidth < 1024) {
-                      setIsSidebarOpen(false)
-                    }
-                  }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                     isActive
-                      ? "bg-terracotta-50 dark:bg-terracotta-900/20 text-terracotta-600 dark:text-terracotta-400 font-medium"
-                      : "text-charcoal-600 dark:text-charcoal-400 hover:bg-charcoal-50 dark:hover:bg-charcoal-800"
+                      ? 'bg-terracotta-50 text-terracotta-600 dark:bg-terracotta-900/20 dark:text-terracotta-300'
+                      : 'text-charcoal-600 dark:text-charcoal-300 hover:bg-charcoal-100 dark:hover:bg-charcoal-800'
                   }`}
                 >
-                  <link.icon className={`h-5 w-5 ${isActive ? "text-terracotta-500" : ""}`} />
-                  <span className="truncate">{link.label}</span>
+                  <link.icon className="h-4 w-4" />
+                  <span>{link.label}</span>
                 </Link>
               )
             })}
-          </div>
-        </div>
+          </nav>
 
-        <div className="p-4 border-t border-charcoal-200 dark:border-charcoal-800 shrink-0">
-          <button
-            onClick={logout}
-            className="flex items-center gap-3 px-4 py-3 w-full text-left text-charcoal-600 dark:text-charcoal-400 hover:bg-charcoal-50 dark:hover:bg-charcoal-800 rounded-xl transition-colors"
-          >
-            <LogOut className="h-5 w-5" />
-            <span>{t('host_logout')}</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        
-        {/* Top Header */}
-        <header className="h-16 bg-white dark:bg-charcoal-900 border-b border-charcoal-200 dark:border-charcoal-800 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0">
-          <div className="flex items-center gap-4">
-            {/* Sidebar toggle is always visible on all screens */}
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="text-charcoal-600 dark:text-charcoal-400 hover:text-charcoal-900 dark:hover:text-white p-1 rounded-lg hover:bg-charcoal-100 dark:hover:bg-charcoal-800 transition-colors"
-            >
-              <Menu className="h-6 w-6" />
-            </button>
-            <div className="hidden sm:block">
-              <span className="text-xs text-charcoal-500 dark:text-charcoal-400 font-semibold uppercase tracking-wider">
-                Interface
-              </span>
-              <h2 className="text-sm font-bold text-charcoal-900 dark:text-white capitalize leading-none">
-                {user?.role === 'provider' ? 'Prestataire' : user?.role === 'host' ? t('host_dashboard') : user?.role || 'Utilisateur'}
-              </h2>
-            </div>
-          </div>
-
-          {/* User profile actions (No notification bell and no currency selection) */}
-          <div className="flex items-center gap-4">
-            {/* Global back button for provider pages */}
+          <div className="flex items-center gap-3">
             {user?.role === 'provider' && (
               <button
                 onClick={() => router.back()}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-charcoal-100 transition-colors"
+                className="hidden md:inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-charcoal-600 dark:text-charcoal-300 hover:bg-charcoal-100 dark:hover:bg-charcoal-800 transition-colors"
                 aria-label="Retour"
               >
-                <svg className="h-4 w-4 text-charcoal-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <span>{t('back')}</span>
               </button>
             )}
-
-            <Link href="/settings" className="flex items-center gap-2">
+            <Link href="/settings" className="flex items-center gap-2 rounded-full bg-charcoal-100 dark:bg-charcoal-900 px-3 py-2 transition-colors hover:bg-charcoal-200 dark:hover:bg-charcoal-800">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-terracotta-500 to-terracotta-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
                 {user?.username?.charAt(0)?.toUpperCase() || 'U'}
               </div>
             </Link>
           </div>
-        </header>
+        </div>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-charcoal-50 dark:bg-charcoal-950 p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
-      </div>
+        <AnimatePresence>
+          {isSidebarOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="lg:hidden border-b border-charcoal-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-950"
+            >
+              <div className="space-y-1 px-4 py-3">
+                {links.map((link) => {
+                  const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`)
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setIsSidebarOpen(false)}
+                      className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-terracotta-50 text-terracotta-600 dark:bg-terracotta-900/20 dark:text-terracotta-300'
+                          : 'text-charcoal-700 dark:text-charcoal-300 hover:bg-charcoal-100 dark:hover:bg-charcoal-800'
+                      }`}
+                    >
+                      <link.icon className="h-5 w-5" />
+                      <span>{link.label}</span>
+                    </Link>
+                  )
+                })}
+                <button
+                  onClick={logout}
+                  className="flex w-full items-center gap-3 rounded-2xl bg-charcoal-100 dark:bg-charcoal-900 px-4 py-3 text-sm font-medium text-charcoal-700 dark:text-charcoal-200 hover:bg-charcoal-200 dark:hover:bg-charcoal-800 transition-colors"
+                >
+                  <LogOut className="h-5 w-5" />
+                  {t('host_logout')}
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
+
+      <main className="flex-1 overflow-y-auto bg-charcoal-50 dark:bg-charcoal-950 p-4 sm:p-6 lg:p-8">
+        {children}
+      </main>
     </div>
   )
 }

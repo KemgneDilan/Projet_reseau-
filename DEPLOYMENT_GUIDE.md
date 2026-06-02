@@ -1,4 +1,4 @@
-# 🚀 Guide de Déploiement et Test - Frontend H&R&S
+# 🚀 Guide de Déploiement et Test - Frontend Loomdaah
 
 ## Prérequis
 
@@ -284,4 +284,4 @@ Pour les bugs ou améliorations :
 
 **Version** : 1.0.0  
 **Dernière mise à jour** : Janvier 2026  
-**Maintainer** : H&R&S Frontend Team
+**Maintainer** : Loomdaah Frontend Team

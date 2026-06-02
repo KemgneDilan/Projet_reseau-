@@ -95,7 +95,7 @@ export default function ServicePage() {
               </li>
               <li className="flex items-start text-charcoal-700">
                 <CheckCircle className="h-5 w-5 text-green-500 mr-3 shrink-0 mt-0.5" />
-                <span>Support client H&R&S disponible 24/7 en cas de problème.</span>
+                <span>Support client Loomdaah disponible 24/7 en cas de problème.</span>
               </li>
             </ul>
           </section>

@@ -14,14 +14,70 @@ export default function SettingsPage() {
   const { isDarkMode, toggleDarkMode } = useTheme()
   const { t, lang, changeLanguage } = useLanguage()
   const { currency, changeCurrency } = useCurrency()
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
   const router = useRouter()
+  const [connectionData, setConnectionData] = React.useState({
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: ''
+  })
+  const [accountData, setAccountData] = React.useState({
+    username: '',
+    city: ''
+  })
+  const [saveStatus, setSaveStatus] = React.useState('')
 
   React.useEffect(() => {
     if (!user) {
       router.push('/login')
     }
   }, [user, router])
+
+  React.useEffect(() => {
+    if (user) {
+      setConnectionData({
+        email: user.email || '',
+        phone: user.phone || '',
+        password: '',
+        confirmPassword: ''
+      })
+      setAccountData({
+        username: user.username || '',
+        city: user.city || ''
+      })
+    }
+  }, [user])
+
+  const handleSaveProfile = () => {
+    setSaveStatus('')
+    if (connectionData.password && connectionData.password !== connectionData.confirmPassword) {
+      setSaveStatus('Les mots de passe ne correspondent pas.')
+      return
+    }
+
+    const updates = {
+      email: connectionData.email,
+      phone: connectionData.phone,
+      username: accountData.username,
+      city: accountData.city
+    }
+
+    if (connectionData.password) {
+      updates.password = connectionData.password
+    }
+
+    updateUser(updates)
+
+    if (typeof window !== 'undefined') {
+      const savedUsers = JSON.parse(localStorage.getItem('hrs_users') || '[]')
+      const updatedUsers = savedUsers.map((u) => (u.id === user.id ? { ...u, ...updates } : u))
+      localStorage.setItem('hrs_users', JSON.stringify(updatedUsers))
+    }
+
+    setSaveStatus('Vos informations ont bien été mises à jour.')
+    setConnectionData((prev) => ({ ...prev, password: '', confirmPassword: '' }))
+  }
 
   if (!user) return null
 
@@ -128,6 +184,100 @@ export default function SettingsPage() {
                 </select>
               </div>
 
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Connection and Account Settings */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white dark:bg-charcoal-900 rounded-2xl border border-charcoal-200 dark:border-charcoal-800 shadow-sm overflow-hidden"
+        >
+          <div className="p-6 space-y-6">
+            <h2 className="text-xl font-bold text-charcoal-900 dark:text-white border-b border-charcoal-100 dark:border-charcoal-800 pb-2">
+              Paramètres de connexion et compte
+            </h2>
+
+            <div className="grid grid-cols-1 gap-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-charcoal-900 dark:text-white">Paramètres de connexion</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Adresse email</label>
+                    <input
+                      type="email"
+                      value={connectionData.email}
+                      onChange={(e) => setConnectionData((prev) => ({ ...prev, email: e.target.value }))}
+                      className="w-full rounded-xl border border-charcoal-200 dark:border-charcoal-700 bg-white dark:bg-charcoal-800 px-4 py-3 text-charcoal-900 dark:text-white outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Téléphone</label>
+                    <input
+                      type="tel"
+                      value={connectionData.phone}
+                      onChange={(e) => setConnectionData((prev) => ({ ...prev, phone: e.target.value }))}
+                      className="w-full rounded-xl border border-charcoal-200 dark:border-charcoal-700 bg-white dark:bg-charcoal-800 px-4 py-3 text-charcoal-900 dark:text-white outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Nouveau mot de passe</label>
+                    <input
+                      type="password"
+                      value={connectionData.password}
+                      onChange={(e) => setConnectionData((prev) => ({ ...prev, password: e.target.value }))}
+                      className="w-full rounded-xl border border-charcoal-200 dark:border-charcoal-700 bg-white dark:bg-charcoal-800 px-4 py-3 text-charcoal-900 dark:text-white outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Confirmer le mot de passe</label>
+                    <input
+                      type="password"
+                      value={connectionData.confirmPassword}
+                      onChange={(e) => setConnectionData((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                      className="w-full rounded-xl border border-charcoal-200 dark:border-charcoal-700 bg-white dark:bg-charcoal-800 px-4 py-3 text-charcoal-900 dark:text-white outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-charcoal-900 dark:text-white">Informations du compte</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Nom d'utilisateur</label>
+                    <input
+                      type="text"
+                      value={accountData.username}
+                      onChange={(e) => setAccountData((prev) => ({ ...prev, username: e.target.value }))}
+                      className="w-full rounded-xl border border-charcoal-200 dark:border-charcoal-700 bg-white dark:bg-charcoal-800 px-4 py-3 text-charcoal-900 dark:text-white outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Ville</label>
+                    <input
+                      type="text"
+                      value={accountData.city}
+                      onChange={(e) => setAccountData((prev) => ({ ...prev, city: e.target.value }))}
+                      className="w-full rounded-xl border border-charcoal-200 dark:border-charcoal-700 bg-white dark:bg-charcoal-800 px-4 py-3 text-charcoal-900 dark:text-white outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {saveStatus && (
+                <div className="rounded-xl border border-charcoal-200 dark:border-charcoal-800 bg-charcoal-50 dark:bg-charcoal-950/40 px-4 py-3 text-sm text-charcoal-700 dark:text-charcoal-200">
+                  {saveStatus}
+                </div>
+              )}
+
+              <div className="flex justify-end">
+                <Button type="button" onClick={handleSaveProfile} className="w-full sm:w-auto">
+                  Enregistrer les modifications
+                </Button>
+              </div>
             </div>
           </div>
         </motion.div>

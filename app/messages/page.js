@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button"
 const mockContacts = [
   { id: 1, name: "Jean Dupont (Hôte)", avatar: "JD", status: "En ligne", lastSeen: "À l'instant" },
   { id: 2, name: "Marie Curie (Guide)", avatar: "MC", status: "Hors ligne", lastSeen: "Il y a 2h" },
-  { id: 3, name: "Support H&R&S", avatar: "S", status: "En ligne", lastSeen: "À l'instant" }
+  { id: 3, name: "Support Loomdaah", avatar: "S", status: "En ligne", lastSeen: "À l'instant" }
 ]
 
 const mockMessages = {

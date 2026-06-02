@@ -102,7 +102,7 @@ export default function RegisterPage() {
         <Card className="w-full max-w-md shadow-xl border-charcoal-100">
           <CardHeader className="text-center pb-6">
             <CardTitle className="text-2xl font-bold text-terracotta-500 mb-2">Créer un compte</CardTitle>
-            <CardDescription>Rejoignez H&R&S et découvrez des lieux uniques.</CardDescription>
+            <CardDescription>Rejoignez Loomdaah et découvrez des lieux uniques.</CardDescription>
           </CardHeader>
           <CardContent>
             {errors.form && (

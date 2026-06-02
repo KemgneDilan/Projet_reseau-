@@ -52,7 +52,7 @@ export default function Home() {
             className="inline-block mb-6 px-4 py-2 bg-terracotta-500/20 border border-terracotta-400/40 rounded-full"
           >
             <span className="text-terracotta-300 text-sm font-semibold">
-              ✨ Bienvenue sur H&R&S
+              ✨ Bienvenue sur Loomdaah
             </span>
           </motion.div>
 
@@ -150,7 +150,7 @@ export default function Home() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl font-bold text-charcoal-900 mb-4">
-              Pourquoi choisir H&R&S ?
+              Pourquoi choisir Loomdaah ?
             </h2>
             <p className="text-charcoal-600 max-w-2xl mx-auto text-lg">
               Une plateforme complète pensée pour offrir la meilleure expérience

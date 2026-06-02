@@ -1,8 +1,8 @@
-# 🎨 Frontend H&R&S - Améliorations Complètes
+# 🎨 Frontend Loomdaah - Améliorations Complètes
 
 ## 📋 Vue d'ensemble
 
-Ce document résume les améliorations du frontend H&R&S, transformant une application basique en plateforme premium d'hébergement et services avec une UX/UI moderne et fonctionnalités avancées.
+Ce document résume les améliorations du frontend Loomdaah, transformant une application basique en plateforme premium d'hébergement et services avec une UX/UI moderne et fonctionnalités avancées.
 
 ---
 

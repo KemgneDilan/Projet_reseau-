@@ -55,7 +55,7 @@ export default function LoginPage() {
         <Card className="w-full max-w-md shadow-xl border-charcoal-100">
           <CardHeader className="text-center pb-6">
             <CardTitle className="text-2xl font-bold text-terracotta-500 mb-2">
-              Bienvenue sur H&R&S
+              Bienvenue sur Loomdaah
             </CardTitle>
             <CardDescription>Connectez-vous pour accéder à votre espace dédié.</CardDescription>
           </CardHeader>

@@ -52,7 +52,7 @@ export default function AdminDashboard() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-charcoal-900 flex items-center gap-3">
-          <ShieldCheck className="h-8 w-8 text-terracotta-500" /> Administration H&R&S
+          <ShieldCheck className="h-8 w-8 text-terracotta-500" /> Administration Loomdaah
         </h1>
         <Button variant="secondary" onClick={handleLogout}>
           Se déconnecter

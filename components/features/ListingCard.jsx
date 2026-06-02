@@ -61,7 +61,7 @@ export function ListingCard({
 
             {/* Price Badge */}
             <div className="absolute bottom-3 left-3 bg-terracotta-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg">
-              {price}€<span className="text-sm font-normal">/nuit</span>
+              {price} FCFA<span className="text-sm font-normal">/nuit</span>
             </div>
           </div>
 
