@@ -19,6 +19,7 @@ import {
   Bed,
   Bath,
   Wind,
+  X,
 } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
@@ -66,6 +67,8 @@ export default function ListingDetailPage() {
   const [guests, setGuests] = useState(1)
   const [bookingMode, setBookingMode] = useState(isRoomListing ? 'room' : isHouseListing ? 'whole' : 'listing')
   const [selectedRoomIds, setSelectedRoomIds] = useState(isRoomListing ? [listing.id] : [])
+  const [video, setVideo] = useState(null)
+  const [photos, setPhotos] = useState([])
 
   useEffect(() => {
     const savedFavs = JSON.parse(localStorage.getItem('hrs_favorites') || '[]')
@@ -84,14 +87,6 @@ export default function ListingDetailPage() {
       setSelectedRoomIds([listing.id])
     }
   }, [id, isRoomListing, isHouseListing, listing.id])
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      ['hrs_current_user', 'accessToken', 'refreshToken', 'hrs_auth', 'hrs_session', 'hrs_credentials'].forEach((key) => {
-        localStorage.removeItem(key)
-      })
-    }
-  }, [])
 
   useEffect(() => {
     const handler = (ev) => {
@@ -188,6 +183,70 @@ export default function ListingDetailPage() {
     setUserComment("")
   }
 
+  const handleVideoChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    if (!file.type.startsWith('video/')) {
+      alert('Veuillez sélectionner un fichier vidéo.')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      alert('La vidéo est trop grande. Veuillez choisir une vidéo de moins de 2 Mo.')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setVideo({
+        name: file.name,
+        type: file.type,
+        data: event.target.result
+      })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handlePhotosChange = (e) => {
+    const files = Array.from(e.target.files)
+    if (photos.length + files.length > 5) {
+      alert('Vous pouvez télécharger jusqu’à 5 photos au maximum.')
+      return
+    }
+    
+    let loaded = 0
+    const newPhotos = [...photos]
+    files.forEach((file) => {
+      if (!file.type.startsWith('image/')) {
+        alert('Veuillez sélectionner uniquement des images.')
+        return
+      }
+      if (file.size > 1 * 1024 * 1024) {
+        alert(`L'image ${file.name} est trop grande. Veuillez choisir des images de moins de 1 Mo.`)
+        return
+      }
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        newPhotos.push({
+          name: file.name,
+          type: file.type,
+          data: event.target.result
+        })
+        loaded++
+        if (loaded === files.length) {
+          setPhotos(newPhotos)
+        }
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const removePhoto = (index) => {
+    setPhotos((prev) => prev.filter((_, idx) => idx !== index))
+  }
+
+  const removeVideo = () => {
+    setVideo(null)
+  }
+
   const handleReservation = async (e) => {
     e.preventDefault()
     if (!startDate || !endDate) return alert('Veuillez sélectionner des dates valides.')
@@ -233,11 +292,27 @@ export default function ListingDetailPage() {
       guests,
       createdAt: new Date().toISOString(),
       userId: user.id,
+      video,
+      photos,
     }
 
     const userKey = `hrs_reservations_${user.id}`
     const prev = JSON.parse(localStorage.getItem(userKey) || '[]')
-    localStorage.setItem(userKey, JSON.stringify([reservation, ...prev]))
+    try {
+      localStorage.setItem(userKey, JSON.stringify([reservation, ...prev]))
+    } catch (e) {
+      if (e.name === 'QuotaExceededError' || e.message?.includes('quota')) {
+        const simplifiedReservation = {
+          ...reservation,
+          video: video ? { name: video.name, type: video.type, data: 'placeholder' } : null,
+          photos: photos.map(p => ({ name: p.name, type: p.type, data: 'placeholder' }))
+        }
+        localStorage.setItem(userKey, JSON.stringify([simplifiedReservation, ...prev]))
+        alert('Attention : Les fichiers multimédias étant trop volumineux, ils ont été enregistrés sans stockage local complet pour éviter de saturer l’espace.')
+      } else {
+        throw e
+      }
+    }
 
     for (const room of selectedRooms) {
       const blockedKey = `hrs_blocked_${room.id}`
@@ -551,10 +626,10 @@ export default function ListingDetailPage() {
                 <p className="text-sm text-charcoal-500">TVA incluse</p>
               </div>
 
-              {user?.role === 'host' ? (
+              {user?.role === 'host' || user?.role === 'provider' ? (
                 <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/30 rounded-xl p-4 text-orange-800 dark:text-orange-300 text-sm">
-                  <p className="font-semibold mb-1">Espace Hôte</p>
-                  <p>En tant qu'hôte, vous ne pouvez pas effectuer de réservations sur la plateforme.</p>
+                  <p className="font-semibold mb-1">Espace {user?.role === 'host' ? 'Hôte' : 'Prestataire'}</p>
+                  <p>En tant que {user?.role === 'host' ? 'hôte' : 'prestataire'}, vous ne pouvez pas effectuer de réservations sur la plateforme.</p>
                 </div>
               ) : (
                 <form onSubmit={handleReservation} className="space-y-4">
@@ -677,6 +752,105 @@ export default function ListingDetailPage() {
                       onChange={(e) => setGuests(Number(e.target.value))}
                       required
                     />
+                  </div>
+
+                  {/* Media Uploads */}
+                  <div className="space-y-4 rounded-2xl border border-charcoal-200 bg-charcoal-50 p-4 dark:border-charcoal-700 dark:bg-charcoal-900">
+                    <p className="font-semibold text-charcoal-900 dark:text-white text-xs">Fichiers multimédias de la réservation (Optionnel)</p>
+                    
+                    {/* Photos upload */}
+                    <div className="space-y-1.5">
+                      <label className="block text-[11px] font-semibold text-charcoal-700 dark:text-charcoal-350">
+                        Photos (Jusqu'à 5, max 1 Mo chacune)
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="file"
+                          id="reservation-photos"
+                          multiple
+                          accept="image/*"
+                          onChange={handlePhotosChange}
+                          disabled={photos.length >= 5}
+                          className="hidden"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={photos.length >= 5}
+                          onClick={() => document.getElementById('reservation-photos').click()}
+                          className="w-full text-xs"
+                        >
+                          📷 Ajouter des photos ({photos.length}/5)
+                        </Button>
+                      </div>
+
+                      {photos.length > 0 && (
+                        <div className="grid grid-cols-5 gap-2 mt-2">
+                          {photos.map((photo, index) => (
+                            <div key={index} className="relative group aspect-square rounded-lg overflow-hidden border border-charcoal-200 bg-white dark:bg-charcoal-950">
+                              <img
+                                src={photo.data}
+                                alt={photo.name}
+                                className="w-full h-full object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removePhoto(index)}
+                                className="absolute top-1 right-1 p-0.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-sm"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Video upload */}
+                    <div className="space-y-1.5">
+                      <label className="block text-[11px] font-semibold text-charcoal-700 dark:text-charcoal-350">
+                        Vidéo (Max 1, max 2 Mo)
+                      </label>
+                      {!video ? (
+                        <div>
+                          <input
+                            type="file"
+                            id="reservation-video"
+                            accept="video/*"
+                            onChange={handleVideoChange}
+                            className="hidden"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => document.getElementById('reservation-video').click()}
+                            className="w-full text-xs"
+                          >
+                            🎥 Ajouter une vidéo
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="relative rounded-lg overflow-hidden border border-charcoal-200 bg-charcoal-900 p-1 flex flex-col items-center">
+                          <video
+                            src={video.data}
+                            controls
+                            className="w-full max-h-24 rounded object-cover"
+                          />
+                          <div className="flex justify-between items-center w-full px-2 py-1 text-xs text-white">
+                            <span className="truncate max-w-[80%] font-medium">{video.name}</span>
+                            <button
+                              type="button"
+                              onClick={removeVideo}
+                              className="p-1 rounded bg-red-500 hover:bg-red-600 transition-colors text-[10px]"
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {nights > 0 && (

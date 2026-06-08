@@ -50,14 +50,15 @@ export default function NewListingPage() {
     lat: defaultCenter.lat,
     lng: defaultCenter.lng,
     images: [],
+    video: null,
+    numberOfRooms: "",
     amenities: ["Climatisation", "Wifi Fibre", "Gardiennage 24h/24"] // Checked by default
   })
 
   // Nouvelle logique: type de création - 'house' (maison composée de chambres) ou 'room' (chambre seule)
   const [listingKind, setListingKind] = useState('house')
-  const [roomsList, setRoomsList] = useState([]) // { title, price, surfaceArea }
+  const [roomsList, setRoomsList] = useState([]) // { title, surfaceArea }
   const [newRoomTitle, setNewRoomTitle] = useState('')
-  const [newRoomPrice, setNewRoomPrice] = useState('')
   const [newRoomSurface, setNewRoomSurface] = useState('')
 
   const [autocomplete, setAutocomplete] = useState(null)
@@ -136,17 +137,26 @@ export default function NewListingPage() {
     setImageError("")
   }
 
+  const handleVideoUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setFormData(prev => ({ ...prev, video: reader.result }))
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const removeVideo = () => {
+    setFormData(prev => ({ ...prev, video: null }))
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
 
     // Validate images count
-    if (formData.images.length < 1) {
-      setImageError("Veuillez ajouter au moins 1 image de votre logement.")
-      setActiveFormTab("images")
-      return
-    }
-    if (formData.images.length > 5) {
-      setImageError("Vous ne pouvez pas ajouter plus de 5 images.")
+    if (formData.images.length !== 5) {
+      setImageError("Veuillez ajouter exactement 5 images de votre logement.")
       setActiveFormTab("images")
       return
     }
@@ -204,7 +214,7 @@ export default function NewListingPage() {
         hostId,
         title: r.title,
         description: r.description || formData.description,
-        price: parseFloat(r.price),
+        price: 0, // La chambre n'est plus facturée individuellement
         surfaceArea: Number(r.surfaceArea),
         currency: 'XAF',
         status: 'active',
@@ -222,10 +232,11 @@ export default function NewListingPage() {
         lat: formData.lat,
         lng: formData.lng,
         currency: 'XAF',
-        images: formData.images.length > 0 ? formData.images : [],
+        images: formData.images,
+        video: formData.video,
         amenities: formData.amenities,
         roomsIds: createdRooms.map(r => r.id),
-        numberOfRooms: createdRooms.length,
+        numberOfRooms: Number(formData.numberOfRooms) || createdRooms.length,
         surfaceArea: Number(formData.surfaceArea) || 0,
         price: parseFloat(formData.price || 0),
         status: 'active'
@@ -262,6 +273,7 @@ export default function NewListingPage() {
         type: 'House',
         status: 'active',
         images: newHouse.images,
+        video: newHouse.video,
         amenities: newHouse.amenities,
         roomsCount: createdRooms.length,
         numberOfRooms: newHouse.numberOfRooms,
@@ -297,7 +309,8 @@ export default function NewListingPage() {
       lng: formData.lng,
       type: "Room",
       status: "active",
-      images: formData.images.length > 0 ? formData.images : ['https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=80'],
+      images: formData.images,
+      video: formData.video,
       amenities: formData.amenities
     }
 
@@ -370,6 +383,32 @@ export default function NewListingPage() {
                   Informations générales
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Choix: Maison ou Chambre au tout début */}
+                  <div className="md:col-span-2 bg-charcoal-50 dark:bg-charcoal-800/50 p-4 rounded-xl border border-charcoal-200 dark:border-charcoal-700">
+                    <label className="text-sm font-semibold text-charcoal-900 dark:text-white">Quel type d&apos;annonce souhaitez-vous créer ?</label>
+                    <div className="mt-3 flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setListingKind('house')}
+                        className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all font-medium ${listingKind === 'house' ? 'bg-terracotta-50/20 border-terracotta-500 text-terracotta-700 dark:text-terracotta-400' : 'bg-white dark:bg-charcoal-900 border-charcoal-200 dark:border-charcoal-700 text-charcoal-700 dark:text-charcoal-300 hover:border-terracotta-300'}`}
+                      >
+                        Maison (plusieurs pièces/chambres)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setListingKind('room')}
+                        className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all font-medium ${listingKind === 'room' ? 'bg-terracotta-50/20 border-terracotta-500 text-terracotta-700 dark:text-terracotta-400' : 'bg-white dark:bg-charcoal-900 border-charcoal-200 dark:border-charcoal-700 text-charcoal-700 dark:text-charcoal-300 hover:border-terracotta-300'}`}
+                      >
+                        Chambre individuelle
+                      </button>
+                    </div>
+                    {listingKind === 'house' && (
+                      <p className="text-xs text-charcoal-500 mt-2">
+                        Le tarif global s'applique à l'ensemble de la maison. Vous décrirez ensuite les pièces qui la composent.
+                      </p>
+                    )}
+                  </div>
+
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Titre de l&apos;annonce</label>
                     <Input 
@@ -392,7 +431,7 @@ export default function NewListingPage() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">
-                      {listingKind === 'house' ? 'Prix par nuit (maison complète, max 15000 FCFA)' : 'Prix par nuit (chambre, max 3000 FCFA)'}
+                      {listingKind === 'house' ? 'Prix global par nuit (max 15000 FCFA)' : 'Prix par nuit (chambre, max 3000 FCFA)'}
                     </label>
                     <Input 
                       type="number"
@@ -400,7 +439,7 @@ export default function NewListingPage() {
                       placeholder={listingKind === 'house' ? 'Ex: 15000' : 'Ex: 3000'}
                       value={formData.price}
                       onChange={e => setFormData({...formData, price: e.target.value})}
-                      className="bg-white dark:bg-charcoal-800 font-semibold"
+                      className="bg-white dark:bg-charcoal-800 font-semibold text-terracotta-600"
                     />
                   </div>
                   {listingKind === 'room' && (
@@ -418,96 +457,97 @@ export default function NewListingPage() {
                     </div>
                   )}
                   {listingKind === 'house' && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Surface totale (m²)</label>
-                      <Input
-                        type="number"
-                        required
-                        min={1}
-                        placeholder="Ex: 120"
-                        value={formData.surfaceArea}
-                        onChange={e => setFormData({...formData, surfaceArea: e.target.value})}
-                        className="bg-white dark:bg-charcoal-800"
-                      />
-                    </div>
+                    <>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Surface totale (m²)</label>
+                        <Input
+                          type="number"
+                          required
+                          min={1}
+                          placeholder="Ex: 120"
+                          value={formData.surfaceArea}
+                          onChange={e => setFormData({...formData, surfaceArea: e.target.value})}
+                          className="bg-white dark:bg-charcoal-800"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Nombre de pièces/chambres</label>
+                        <Input
+                          type="number"
+                          required
+                          min={1}
+                          placeholder="Ex: 5"
+                          value={formData.numberOfRooms}
+                          onChange={e => setFormData({...formData, numberOfRooms: e.target.value})}
+                          className="bg-white dark:bg-charcoal-800"
+                        />
+                      </div>
+                    </>
                   )}
-                  
-                  {/* Choix: Maison ou Chambre */}
-                  <div className="md:col-span-2">
-                    <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Type d&apos;annonce</label>
-                    <div className="mt-2 flex gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setListingKind('house')}
-                        className={`px-4 py-2 rounded-lg border transition ${listingKind === 'house' ? 'bg-terracotta-50/10 border-terracotta-500 text-terracotta-700' : 'bg-white dark:bg-charcoal-800 border-charcoal-200'}`}
-                      >
-                        Maison (plusieurs chambres)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setListingKind('room')}
-                        className={`px-4 py-2 rounded-lg border transition ${listingKind === 'room' ? 'bg-terracotta-50/10 border-terracotta-500 text-terracotta-700' : 'bg-white dark:bg-charcoal-800 border-charcoal-200'}`}
-                      >
-                        Chambre seule
-                      </button>
-                    </div>
-                  </div>
 
                   {/* Editor des chambres si maison */}
                   {listingKind === 'house' && (
-                    <div className="md:col-span-2 pt-4 border-t border-charcoal-100 dark:border-charcoal-800">
-                      <h3 className="text-sm font-semibold text-charcoal-800 dark:text-white mb-2">Chambres de la maison</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                    <div className="md:col-span-2 pt-6 border-t border-charcoal-100 dark:border-charcoal-800">
+                      <div className="mb-4">
+                        <h3 className="text-md font-bold text-charcoal-900 dark:text-white">Chambres constituant la maison</h3>
+                        <p className="text-sm text-charcoal-500">Ajoutez les chambres (titre et surface). Le prix est déjà couvert par le tarif global.</p>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px_auto] gap-3 items-end bg-charcoal-50 dark:bg-charcoal-800/30 p-4 rounded-xl border border-charcoal-100 dark:border-charcoal-800">
                         <div>
-                          <label className="text-xs text-charcoal-600">Titre chambre</label>
-                          <Input value={newRoomTitle} onChange={e => setNewRoomTitle(e.target.value)} placeholder="Ex: Chambre Master" />
+                          <label className="text-xs font-medium text-charcoal-700 dark:text-charcoal-300">Titre de la chambre</label>
+                          <Input value={newRoomTitle} onChange={e => setNewRoomTitle(e.target.value)} placeholder="Ex: Chambre Master" className="mt-1 bg-white dark:bg-charcoal-900" />
                         </div>
                         <div>
-                          <label className="text-xs text-charcoal-600">Prix par nuit (FCFA)</label>
-                          <Input type="number" value={newRoomPrice} onChange={e => setNewRoomPrice(e.target.value)} placeholder="Ex: 3000" />
-                        </div>
-                        <div>
-                          <label className="text-xs text-charcoal-600">Surface (m²)</label>
-                          <Input type="number" value={newRoomSurface} onChange={e => setNewRoomSurface(e.target.value)} placeholder="Ex: 16" />
+                          <label className="text-xs font-medium text-charcoal-700 dark:text-charcoal-300">Surface (m²)</label>
+                          <Input type="number" value={newRoomSurface} onChange={e => setNewRoomSurface(e.target.value)} placeholder="Ex: 16" className="mt-1 bg-white dark:bg-charcoal-900" />
                         </div>
                         <div className="flex gap-2">
-                          <button type="button" onClick={() => {
-                            if (!newRoomTitle || !newRoomPrice || !newRoomSurface) {
-                              alert('Veuillez renseigner le titre, le prix et la surface de la chambre.')
-                              return
-                            }
-                            if (Number(newRoomPrice) > 3000) {
-                              alert('Le prix par nuit d\'une chambre ne peut pas dépasser 3000 FCFA.')
-                              return
-                            }
-                            if (Number(newRoomSurface) <= 0) {
-                              alert('La surface de la chambre doit être supérieure à 0 m².')
-                              return
-                            }
-                            setRoomsList(prev => [...prev, { title: newRoomTitle, price: newRoomPrice, surfaceArea: newRoomSurface }])
-                            setNewRoomTitle('')
-                            setNewRoomPrice('')
-                            setNewRoomSurface('')
-                          }} className="px-4 py-2 inline-flex items-center gap-2 rounded-lg bg-terracotta-500 text-white">
-                            <Plus className="h-4 w-4" /> Ajouter
-                          </button>
-                          <button type="button" onClick={() => { setNewRoomTitle(''); setNewRoomPrice(''); setNewRoomSurface('') }} className="px-3 py-2 rounded-lg border">Effacer</button>
+                          <Button 
+                            type="button" 
+                            onClick={() => {
+                              if (!newRoomTitle || !newRoomSurface) {
+                                alert('Veuillez renseigner le titre et la surface de la chambre.')
+                                return
+                              }
+                              if (Number(newRoomSurface) <= 0) {
+                                alert('La surface de la chambre doit être supérieure à 0 m².')
+                                return
+                              }
+                              setRoomsList(prev => [...prev, { title: newRoomTitle, surfaceArea: newRoomSurface }])
+                              setNewRoomTitle('')
+                              setNewRoomSurface('')
+                            }} 
+                            className="bg-terracotta-500 text-white hover:bg-terracotta-600"
+                          >
+                            <Plus className="h-4 w-4 mr-1" /> Ajouter
+                          </Button>
                         </div>
                       </div>
 
                       {roomsList.length > 0 && (
                         <div className="mt-4 grid gap-2">
                           {roomsList.map((r, idx) => (
-                            <div key={idx} className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-white dark:bg-charcoal-800">
-                              <div>
-                                <div className="font-medium">{r.title}</div>
-                                <div className="text-sm text-charcoal-500">
-                                  {parseFloat(r.price).toLocaleString()} {r.currency || 'XAF'} · {r.surfaceArea} m²
+                            <div key={idx} className="flex items-center justify-between gap-3 p-3 rounded-lg border border-charcoal-200 dark:border-charcoal-700 bg-white dark:bg-charcoal-800 shadow-sm">
+                              <div className="flex items-center gap-3">
+                                <div className="h-8 w-8 rounded-full bg-terracotta-100 text-terracotta-600 flex items-center justify-center font-bold text-xs">
+                                  {idx + 1}
+                                </div>
+                                <div>
+                                  <div className="font-semibold text-charcoal-900 dark:text-white">{r.title}</div>
+                                  <div className="text-sm text-charcoal-500">
+                                    Surface: {r.surfaceArea} m²
+                                  </div>
                                 </div>
                               </div>
-                              <div>
-                                <button type="button" onClick={() => setRoomsList(prev => prev.filter((_, i) => i !== idx))} className="p-2 rounded bg-red-600 text-white"><Trash className="h-4 w-4" /></button>
-                              </div>
+                              <Button 
+                                type="button" 
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setRoomsList(prev => prev.filter((_, i) => i !== idx))} 
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
                             </div>
                           ))}
                         </div>
@@ -629,6 +669,37 @@ export default function NewListingPage() {
                   ))}
                 </div>
               )}
+
+              <div className="pt-6 border-t border-charcoal-200 dark:border-charcoal-800">
+                <h3 className="text-md font-bold text-charcoal-900 dark:text-white mb-2">
+                  Vidéo de présentation (Optionnel)
+                </h3>
+                {!formData.video ? (
+                  <div className="border-2 border-dashed border-charcoal-300 dark:border-charcoal-700 rounded-xl p-6 text-center bg-charcoal-50/50 dark:bg-charcoal-800/10 hover:border-terracotta-500 transition-colors relative cursor-pointer">
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={handleVideoUpload}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    />
+                    <Upload className="h-8 w-8 text-charcoal-400 mx-auto mb-2" />
+                    <p className="text-sm font-semibold text-charcoal-700 dark:text-charcoal-300">
+                      Ajouter une vidéo
+                    </p>
+                  </div>
+                ) : (
+                  <div className="relative rounded-xl overflow-hidden border border-charcoal-200 dark:border-charcoal-800 bg-black h-48 w-full max-w-sm">
+                    <video src={formData.video} controls className="w-full h-full object-contain" />
+                    <button
+                      type="button"
+                      onClick={removeVideo}
+                      className="absolute top-2 right-2 p-2 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg"
+                    >
+                      <Trash className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </motion.div>
           )}
 
@@ -712,8 +783,8 @@ export default function NewListingPage() {
                   onClick={() => {
                     if (activeFormTab === "details") setActiveFormTab("images")
                     else if (activeFormTab === "images") {
-                      if (formData.images.length < 1) {
-                        setImageError("Veuillez charger au moins une image avant de continuer.")
+                      if (formData.images.length !== 5) {
+                        setImageError("Veuillez charger exactement 5 images avant de continuer.")
                       } else {
                         setActiveFormTab("location")
                       }

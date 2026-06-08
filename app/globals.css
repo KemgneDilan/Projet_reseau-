@@ -21,20 +21,24 @@
   --color-charcoal-600: #5d5d5d;
   --color-charcoal-700: #475569; /* slate-600 */
   --color-charcoal-800: #334155; /* slate-700 */
-  --color-charcoal-900: #1e293b; /* slate-800 - Text default */
-  --color-charcoal-950: #0f172a; /* slate-900 */
+  --color-charcoal-900: var(--charcoal-900);
+  --color-charcoal-950: var(--charcoal-950);
 }
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
   --background: #f8f9fa; /* Off-white for premium feel */
-  --foreground: #3d3d3d; /* Charcoal 900 */
+  --foreground: #1e293b; /* Charcoal 900 */
+  --charcoal-900: #1e293b;
+  --charcoal-950: #0f172a;
 }
 
 .dark {
-  --background: #0f172a; /* slate-900 */
-  --foreground: #e2e8f0; /* slate-200 */
+  --background: #374151; /* medium gray - gray-700 */
+  --foreground: #f3f4f6; /* gray-100 */
+  --charcoal-900: #4b5563; /* gray-600 - medium gray for cards/content */
+  --charcoal-950: #1f2937; /* gray-800 - medium-dark gray for layout background */
 }
 
 body {

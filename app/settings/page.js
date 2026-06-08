@@ -14,7 +14,7 @@ export default function SettingsPage() {
   const { isDarkMode, toggleDarkMode } = useTheme()
   const { t, lang, changeLanguage } = useLanguage()
   const { currency, changeCurrency } = useCurrency()
-  const { user, updateUser } = useAuth()
+  const { user, updateUser, loading } = useAuth()
   const router = useRouter()
   const [connectionData, setConnectionData] = React.useState({
     email: '',
@@ -27,12 +27,19 @@ export default function SettingsPage() {
     city: ''
   })
   const [saveStatus, setSaveStatus] = React.useState('')
+  const [isMounted, setIsMounted] = React.useState(false)
+
+  // Prevent SSR/CSR hydration mismatch: all auth-dependent rendering
+  // is deferred to after first client mount.
+  React.useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   React.useEffect(() => {
-    if (!user) {
+    if (!loading && !user) {
       router.push('/login')
     }
-  }, [user, router])
+  }, [user, loading, router])
 
   React.useEffect(() => {
     if (user) {
@@ -77,6 +84,13 @@ export default function SettingsPage() {
 
     setSaveStatus('Vos informations ont bien été mises à jour.')
     setConnectionData((prev) => ({ ...prev, password: '', confirmPassword: '' }))
+  }
+
+  // Before client mount, return null to match server-rendered output exactly.
+  if (!isMounted) return null
+
+  if (loading) {
+    return <div className="p-8 text-center text-charcoal-500">Chargement…</div>
   }
 
   if (!user) return null

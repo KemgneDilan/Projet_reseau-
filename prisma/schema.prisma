@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String
+  role      String   @default("client") // client, host, provider, admin
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  listings     Listing[]
+  services     Service[]
+  reservations Reservation[]
+  reviews      Review[]
+}
+
+model Listing {
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  type         String   // house or room
+  location     String
+  price        Float
+  images       String[] // array of URLs
+  video        String?  // optional video URL
+  amenities    String[]
+  roomsCount   Int?     // for houses
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  hostId       String
+  host         User     @relation(fields: [hostId], references: [id])
+  
+  reservations Reservation[]
+  reviews      Review[]
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String
+  price       Float
+  image       String?
+  location    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  providerId  String
+  provider    User     @relation(fields: [providerId], references: [id])
+  
+  reviews     Review[]
+}
+
+model Reservation {
+  id         String   @id @default(cuid())
+  checkIn    DateTime
+  checkOut   DateTime
+  totalPrice Float
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+
+  listingId  String
+  listing    Listing  @relation(fields: [listingId], references: [id])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String
+  targetType String  // listing or service
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  listingId String?
+  listing   Listing? @relation(fields: [listingId], references: [id])
+
+  serviceId String?
+  service   Service? @relation(fields: [serviceId], references: [id])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}

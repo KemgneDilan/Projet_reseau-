@@ -79,6 +79,62 @@ export default function HostDashboard() {
   const [myListings, setMyListings] = React.useState([])
   const [editingItem, setEditingItem] = React.useState(null)
   const [activeTab, setActiveTab] = React.useState('dashboard')
+  const [receivedReservations, setReceivedReservations] = React.useState([])
+
+  React.useEffect(() => {
+    if (user) {
+      // Find all host listings
+      const localListings = localStorage.getItem(`hrs_listings_${user.id}`)
+      const hostListings = localListings ? JSON.parse(localListings) : defaultListings.filter((l) => l.hostId === user.id || l.hostId === 'u2')
+      const hostListingIds = hostListings.map(l => l.id)
+
+      // Gather all reservations from localStorage
+      const allReservations = []
+      if (typeof window !== 'undefined') {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && key.startsWith('hrs_reservations_')) {
+            try {
+              const list = JSON.parse(localStorage.getItem(key) || '[]')
+              allReservations.push(...list)
+            } catch (e) {}
+          }
+        }
+      }
+
+      // Filter reservations for this host's listings
+      const hostReservations = allReservations.filter(r => hostListingIds.includes(r.listingId))
+
+      // Merge with mockReceivedReservations, avoiding duplicates
+      const merged = hostReservations.map(r => {
+        const matchedListing = hostListings.find(l => l.id === r.listingId)
+        return {
+          id: r.id,
+          listingTitle: r.title || matchedListing?.title || "Logement",
+          guestName: "Client Loomdaah",
+          guestPhone: "+237 600 00 00 00",
+          checkIn: r.checkIn,
+          checkOut: r.checkOut,
+          nights: r.nights,
+          amount: r.totalPrice,
+          status: r.status,
+          guestAvatar: "CL",
+          contactId: 1,
+          photos: r.photos,
+          video: r.video
+        }
+      })
+
+      // Add mock reservations if they aren't already represented
+      mockReceivedReservations.forEach(mockRes => {
+        if (!merged.some(r => r.id === mockRes.id)) {
+          merged.push(mockRes)
+        }
+      })
+
+      setReceivedReservations(merged)
+    }
+  }, [user, myListings])
 
   React.useEffect(() => {
     if (!loading && (!user || user.role !== 'host')) {
@@ -168,7 +224,7 @@ export default function HostDashboard() {
   }
 
   // Calculate earnings for chart and accounting
-  const totalEarnings = mockReceivedReservations
+  const totalEarnings = receivedReservations
     .filter(r => r.status === 'confirmed')
     .reduce((acc, curr) => acc + curr.amount, 0)
 
@@ -309,7 +365,7 @@ export default function HostDashboard() {
                 </div>
                 <p className="text-sm font-medium text-charcoal-500 dark:text-charcoal-400">{t('host_res_received')}</p>
                 <h3 className="text-3xl font-extrabold text-charcoal-900 dark:text-white mt-1">
-                  {mockReceivedReservations.length}
+                  {receivedReservations.length}
                 </h3>
                 <span className="text-xs text-charcoal-500 mt-2 block">1 {t('host_pending_validation')}</span>
               </div>
@@ -402,11 +458,50 @@ export default function HostDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-charcoal-100 dark:divide-charcoal-800 text-sm">
-                    {mockReceivedReservations.map((reservation) => (
+                    {receivedReservations.map((reservation) => (
                       <tr key={reservation.id} className="hover:bg-charcoal-50/50 dark:hover:bg-charcoal-900/50 transition-colors">
                         {/* Listing Name */}
-                        <td className="p-4 font-semibold text-charcoal-900 dark:text-white max-w-[200px] truncate">
-                          {reservation.listingTitle}
+                        <td className="p-4 max-w-[250px]">
+                          <div className="font-semibold text-charcoal-900 dark:text-white truncate" title={reservation.listingTitle}>
+                            {reservation.listingTitle}
+                          </div>
+                          {(reservation.photos?.length > 0 || reservation.video) && (
+                            <div className="flex gap-1.5 mt-2 flex-wrap items-center">
+                              {reservation.photos?.map((photo, pIdx) => (
+                                <div key={pIdx} className="w-8 h-8 rounded border border-charcoal-200 dark:border-charcoal-700 overflow-hidden bg-charcoal-50 dark:bg-charcoal-950 flex items-center justify-center shrink-0 shadow-sm relative group">
+                                  {photo.data && photo.data !== 'placeholder' ? (
+                                    <img
+                                      src={photo.data}
+                                      alt={photo.name}
+                                      className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
+                                      onClick={() => {
+                                        const w = window.open()
+                                        w.document.write(`<img src="${photo.data}" style="max-width:100%; max-height:100%; display:block; margin:auto;" />`)
+                                      }}
+                                    />
+                                  ) : (
+                                    <span className="text-[8px]" title={photo.name}>📷</span>
+                                  )}
+                                </div>
+                              ))}
+                              {reservation.video && (
+                                <div className="h-8 rounded border border-charcoal-200 dark:border-charcoal-700 bg-charcoal-900 dark:bg-charcoal-950 flex items-center justify-center shrink-0 shadow-sm px-1.5 py-0.5 max-w-[80px]">
+                                  {reservation.video.data && reservation.video.data !== 'placeholder' ? (
+                                    <video
+                                      src={reservation.video.data}
+                                      className="w-full h-full object-cover cursor-pointer"
+                                      onClick={() => {
+                                        const w = window.open()
+                                        w.document.write(`<video src="${reservation.video.data}" controls style="max-width:100%; max-height:100%; display:block; margin:auto;" />`)
+                                      }}
+                                    />
+                                  ) : (
+                                    <span className="text-[8px] text-white truncate font-bold" title={reservation.video.name}>🎥</span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </td>
                         {/* Guest Profile */}
                         <td className="p-4">

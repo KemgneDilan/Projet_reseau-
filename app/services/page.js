@@ -7,115 +7,71 @@ import { SearchBar } from "@/components/features/SearchBar"
 import { getReviewsFor, calculateAverageRating } from '@/lib/ratingUtils'
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
-
-const mockServices = [
-  {
-    id: 1,
-    title: "Chef cuisinier privé",
-    provider: "Michel Auguste",
-    category: "Gastronomie",
-    image: "https://images.unsplash.com/photo-1604874891534-94c1c5c9ce3e?auto=format&fit=crop&w=500&q=60",
-    price: 150,
-    rating: 4.9,
-    reviews: 45,
-    location: "Kribi, Douala",
-    description: "Chef professionnel avec 15 ans d'expérience. Spécialiste de la cuisine camerounaise et internationale.",
-  },
-  {
-    id: 2,
-    title: "Guide touristique local",
-    provider: "Sarah Njong",
-    category: "Tourisme",
-    image: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=500&q=60",
-    price: 80,
-    rating: 4.8,
-    reviews: 32,
-    location: "Douala, Yaoundé",
-    description: "Découvrez la culture locale avec un guide passionné qui parle français et anglais.",
-  },
-  {
-    id: 3,
-    title: "Chauffeur privé VIP",
-    provider: "Jean-Paul Nguini",
-    category: "Transport",
-    image: "https://images.unsplash.com/photo-1544716278-ca5e3af2abd8?auto=format&fit=crop&w=500&q=60",
-    price: 100,
-    rating: 4.7,
-    reviews: 28,
-    location: "Yaoundé",
-    description: "Service de transport haut de gamme avec chauffeur courtois et expérimenté.",
-  },
-  {
-    id: 4,
-    title: "Cours de danse camerounaise",
-    provider: "Grace Fobasso",
-    category: "Loisirs",
-    image: "https://images.unsplash.com/photo-1516635099255-56aed270549d?auto=format&fit=crop&w=500&q=60",
-    price: 60,
-    rating: 4.9,
-    reviews: 18,
-    location: "Douala",
-    description: "Apprenez les danses traditionnelles camerounaises avec une danseuse professionnelle.",
-  },
-  {
-    id: 5,
-    title: "Massothérapie relaxante",
-    provider: "Dr. Amandine Tekah",
-    category: "Bien-être",
-    image: "https://images.unsplash.com/photo-1544161515-81aae3ff8d5f?auto=format&fit=crop&w=500&q=60",
-    price: 70,
-    rating: 4.8,
-    reviews: 42,
-    location: "Kribi",
-    description: "Massage thérapeutique pour détente et relaxation. Certifiée internationalement.",
-  },
-  {
-    id: 6,
-    title: "Photographe professionnel",
-    provider: "Albert Toh",
-    category: "Événements",
-    image: "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&w=500&q=60",
-    price: 200,
-    rating: 4.9,
-    reviews: 35,
-    location: "Yaoundé, Douala",
-    description: "Photographie professionnelle pour vos événements, mariages et séances photos.",
-  },
-]
+import { useAuth } from "@/app/contexts/AuthContext"
+import { services as defaultServices, users as mockUsers } from "@/lib/mockData"
+import { useCurrency } from "@/app/contexts/CurrencyContext"
 
 export default function ServicesPage() {
-  const [services, setServices] = React.useState(mockServices)
+  const { user } = useAuth()
+  const { currency, formatPrice, RATES } = useCurrency()
+  const maxPriceLimit = Math.round(50000 * (RATES[currency] || 1))
+
+  const [services, setServices] = React.useState(defaultServices)
   const [showFilters, setShowFilters] = React.useState(false)
   const [filters, setFilters] = React.useState({
     category: "",
     priceMin: 0,
-    priceMax: 500,
+    priceMax: 50000,
     rating: 0,
   })
   const [ratingMap, setRatingMap] = React.useState({})
 
-  const categories = ["Gastronomie", "Tourisme", "Transport", "Loisirs", "Bien-être", "Événements"]
+  // Compute categories dynamically from services database
+  const categories = React.useMemo(() => {
+    const set = new Set(defaultServices.map(s => s.category))
+    return Array.from(set)
+  }, [])
+
+  // Synchronize priceMax limit on currency change
+  const prevCurrencyRef = React.useRef(currency)
+  React.useEffect(() => {
+    if (prevCurrencyRef.current !== currency) {
+      const rateDiff = (RATES[currency] || 1) / (RATES[prevCurrencyRef.current] || 1)
+      setFilters(prev => ({
+        ...prev,
+        priceMin: Math.min(Math.round(prev.priceMin * rateDiff), maxPriceLimit),
+        priceMax: Math.min(Math.round(prev.priceMax * rateDiff), maxPriceLimit)
+      }))
+      prevCurrencyRef.current = currency
+    } else {
+      setFilters(prev => ({ ...prev, priceMax: maxPriceLimit }))
+    }
+  }, [currency, maxPriceLimit, RATES])
 
   const handleFilterChange = (key, value) => {
-    const newFilters = { ...filters, [key]: value }
-    setFilters(newFilters)
+    setFilters((prev) => ({ ...prev, [key]: value }))
+  }
 
-    // Filtrer les services using persisted avg ratings when available
-    let filtered = mockServices.filter((service) => {
-      const matchCategory = !newFilters.category || service.category === newFilters.category
-      const matchPrice = service.price >= newFilters.priceMin && service.price <= newFilters.priceMax
+  // Reactive filtering
+  React.useEffect(() => {
+    const minXAF = filters.priceMin / (RATES[currency] || 1)
+    const maxXAF = filters.priceMax / (RATES[currency] || 1)
+
+    let filtered = defaultServices.filter((service) => {
+      const matchCategory = !filters.category || service.category === filters.category
+      const matchPrice = service.price >= minXAF && service.price <= maxXAF
       const avg = ratingMap[service.id] || service.rating || 0
-      const matchRating = !newFilters.rating || avg >= newFilters.rating
+      const matchRating = !filters.rating || avg >= filters.rating
       return matchCategory && matchPrice && matchRating
     })
 
     setServices(filtered)
-  }
+  }, [filters, currency, ratingMap, RATES])
 
   React.useEffect(() => {
     try {
       const map = {}
-      mockServices.forEach(s => {
+      defaultServices.forEach(s => {
         const rv = getReviewsFor('service', s.id)
         const avg = calculateAverageRating(rv.map(r => ({ rating: r.rating })))
         if (avg) map[s.id] = avg
@@ -203,38 +159,44 @@ export default function ServicesPage() {
                 {/* Price Filter */}
                 <div>
                   <label className="block text-sm font-semibold text-charcoal-900 mb-3">
-                    Prix
+                    Prix du service
                   </label>
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-charcoal-600 w-12">
-                        Min: {filters.priceMin}€
-                      </span>
-                      <input
-                        type="range"
-                        min="0"
-                        max="500"
-                        value={filters.priceMin}
-                        onChange={(e) =>
-                          handleFilterChange("priceMin", parseInt(e.target.value))
-                        }
-                        className="flex-1"
-                      />
+                    <div>
+                      <label className="block text-xs font-semibold text-charcoal-700 mb-1">Montant Minimum</label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-charcoal-600 w-24">
+                          {formatPrice(filters.priceMin / (RATES[currency] || 1))}
+                        </span>
+                        <input
+                          type="range"
+                          min="0"
+                          max={maxPriceLimit}
+                          value={filters.priceMin}
+                          onChange={(e) =>
+                            handleFilterChange("priceMin", parseInt(e.target.value))
+                          }
+                          className="flex-1"
+                        />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-charcoal-600 w-12">
-                        Max: {filters.priceMax}€
-                      </span>
-                      <input
-                        type="range"
-                        min="0"
-                        max="500"
-                        value={filters.priceMax}
-                        onChange={(e) =>
-                          handleFilterChange("priceMax", parseInt(e.target.value))
-                        }
-                        className="flex-1"
-                      />
+                    <div>
+                      <label className="block text-xs font-semibold text-charcoal-700 mb-1">Montant Maximum</label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-charcoal-600 w-24">
+                          {formatPrice(filters.priceMax / (RATES[currency] || 1))}
+                        </span>
+                        <input
+                          type="range"
+                          min="0"
+                          max={maxPriceLimit}
+                          value={filters.priceMax}
+                          onChange={(e) =>
+                            handleFilterChange("priceMax", parseInt(e.target.value))
+                          }
+                          className="flex-1"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -268,10 +230,10 @@ export default function ServicesPage() {
                     setFilters({
                       category: "",
                       priceMin: 0,
-                      priceMax: 500,
+                      priceMax: maxPriceLimit,
                       rating: 0,
                     })
-                    setServices(mockServices)
+                    setServices(defaultServices)
                   }}
                 >
                   Réinitialiser
@@ -310,7 +272,7 @@ export default function ServicesPage() {
                       {/* Image */}
                       <div className="relative h-48 overflow-hidden bg-charcoal-100">
                         <img
-                          src={service.image}
+                          src={service.images?.[0] || 'https://images.unsplash.com/photo-1604874891534-94c1c5c9ce3e?auto=format&fit=crop&w=500&q=60'}
                           alt={service.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
@@ -326,7 +288,7 @@ export default function ServicesPage() {
                           {service.title}
                         </h3>
                         <p className="text-sm text-charcoal-600 mb-3">
-                          par <span className="font-semibold">{service.provider}</span>
+                          par <span className="font-semibold">{mockUsers.find(u => u.id === service.providerId)?.username || "Prestataire"}</span>
                         </p>
 
                         <p className="text-sm text-charcoal-700 mb-4 flex-1">
@@ -339,8 +301,8 @@ export default function ServicesPage() {
                               {(() => {
                                 try {
                                   const rv = getReviewsFor('service', service.id)
-                                  const avg = calculateAverageRating(rv.map(r => ({ rating: r.rating }))) || service.rating
-                                  const count = rv.length || service.reviews
+                                  const avg = calculateAverageRating(rv.map(r => ({ rating: r.rating }))) || service.rating || 0
+                                  const count = rv.length || service.reviewsCount || 0
                                   return (
                                     <>
                                       <div className="flex items-center gap-1">
@@ -367,10 +329,10 @@ export default function ServicesPage() {
                                   return (
                                     <>
                                       {[...Array(5)].map((_, i) => (
-                                        <Star key={i} className={`h-4 w-4 ${i < Math.floor(service.rating) ? "fill-yellow-400 text-yellow-400" : "text-charcoal-300"}`} />
+                                        <Star key={i} className={`h-4 w-4 ${i < Math.floor(service.rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-charcoal-300"}`} />
                                       ))}
-                                      <span className="font-semibold text-charcoal-900">{service.rating}</span>
-                                      <span className="text-sm text-charcoal-500">({service.reviews} avis)</span>
+                                      <span className="font-semibold text-charcoal-900">{service.rating || 0}</span>
+                                      <span className="text-sm text-charcoal-500">({service.reviewsCount || 0} avis)</span>
                                     </>
                                   )
                                 }
@@ -380,7 +342,7 @@ export default function ServicesPage() {
 
                         <div className="flex items-center gap-1 text-sm text-charcoal-600 mb-4">
                           <MapPin className="h-4 w-4 text-terracotta-500" />
-                          {service.location}
+                          {service.location || "Douala/Yaoundé"}
                         </div>
 
                         {/* Price and CTA */}
@@ -388,10 +350,12 @@ export default function ServicesPage() {
                           <div>
                             <p className="text-xs text-charcoal-600">À partir de</p>
                             <p className="text-2xl font-bold text-terracotta-600">
-                              {service.price}€<span className="text-sm text-charcoal-600">/h</span>
+                              {formatPrice(service.price)}<span className="text-sm text-charcoal-600"> / {service.unit || 'h'}</span>
                             </p>
                           </div>
-                          <Button size="sm">Réserver</Button>
+                          {(!user || (user.role !== 'host' && user.role !== 'provider')) && (
+                            <Button size="sm">Réserver</Button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -411,10 +375,10 @@ export default function ServicesPage() {
                   setFilters({
                     category: "",
                     priceMin: 0,
-                    priceMax: 500,
+                    priceMax: maxPriceLimit,
                     rating: 0,
                   })
-                  setServices(mockServices)
+                  setServices(defaultServices)
                 }}>
                   Réinitialiser la recherche
                 </Button>

@@ -15,20 +15,13 @@ import {
   Check,
 } from "lucide-react"
 import { Button } from "@/components/ui/Button"
-import { SearchBar } from "@/components/features/SearchBar"
 import { ListingCard } from "@/components/features/ListingCard"
 import { listings } from "@/lib/mockData"
 import { services } from "@/lib/mockData"
 import { getReviewsFor, calculateAverageRating } from '@/lib/ratingUtils'
 
 export default function Home() {
-  const [searchResults, setSearchResults] = React.useState(null)
   const featuredListings = listings.slice(0, 6)
-
-  const handleSearch = (params) => {
-    console.log("Search:", params)
-    setSearchResults(params)
-  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -80,15 +73,6 @@ export default function Home() {
             bien plus encore.
           </motion.p>
 
-          {/* Search Bar in Hero */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
-            className="mb-12"
-          >
-            <SearchBar onSearch={handleSearch} />
-          </motion.div>
 
           {/* CTA Buttons */}
           <motion.div
@@ -106,9 +90,11 @@ export default function Home() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Button size="xl" variant="outline" className="rounded-full">
-              En savoir plus
-            </Button>
+            <Link href="/about">
+              <Button size="xl" variant="outline" className="rounded-full">
+                En savoir plus
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </section>
@@ -158,72 +144,39 @@ export default function Home() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                icon: MapPin,
-                title: "Une offre complète",
-                description:
-                  "Trouvez votre hébergement et tous les services nécessaires en un seul endroit.",
-                color: "terracotta",
-              },
-              {
-                icon: ShieldCheck,
-                title: "Sécurité garantie",
-                description:
-                  "Tous nos partenaires sont vérifiés pour assurer votre tranquillité d'esprit.",
-                color: "green",
-              },
-              {
-                icon: Zap,
-                title: "Réservation rapide",
-                description:
-                  "Confirmez votre réservation en quelques clics, paiement sécurisé en ligne.",
-                color: "yellow",
-              },
-              {
-                icon: Globe,
-                title: "Multi-devises",
-                description:
-                  "Payez dans votre devise préférée avec conversion automatique.",
-                color: "blue",
-              },
-              {
-                icon: Users,
-                title: "Support 24/7",
-                description:
-                  "Notre équipe est toujours disponible pour répondre à vos questions.",
-                color: "purple",
-              },
-              {
-                icon: TrendingUp,
-                title: "Système de notation",
-                description:
-                  "Lisez les avis vérifiés des utilisateurs pour faire le meilleur choix.",
-                color: "orange",
-              },
-            ].map((feature, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className="bg-white rounded-xl p-8 shadow-md hover:shadow-lg transition-shadow border border-charcoal-100"
-              >
-                <div
-                  className={`w-14 h-14 rounded-lg mb-4 flex items-center justify-center bg-${feature.color}-100`}
-                >
-                  <feature.icon
-                    className={`w-7 h-7 text-${feature.color}-600`}
-                  />
-                </div>
-                <h3 className="text-xl font-bold text-charcoal-900 mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-charcoal-600">{feature.description}</p>
-              </motion.div>
-            ))}
+          <div className="overflow-hidden relative w-full py-4">
+            <div className="absolute inset-y-0 left-0 w-16 md:w-32 bg-gradient-to-r from-charcoal-50 to-transparent z-10" />
+            <div className="absolute inset-y-0 right-0 w-16 md:w-32 bg-gradient-to-l from-charcoal-50 to-transparent z-10" />
+
+            {/* Défilement continu horizontal (Marquee) */}
+            <motion.div
+              className="flex gap-8 w-max"
+              animate={{ x: ["0%", "-50%"] }}
+              transition={{ ease: "linear", duration: 30, repeat: Infinity }}
+            >
+              {(() => {
+                const features = [
+                  { icon: MapPin, title: "Une offre complète", description: "Trouvez votre hébergement et tous les services nécessaires en un seul endroit.", color: "terracotta" },
+                  { icon: ShieldCheck, title: "Sécurité garantie", description: "Tous nos partenaires sont vérifiés pour assurer votre tranquillité d'esprit.", color: "green" },
+                  { icon: Zap, title: "Réservation rapide", description: "Confirmez votre réservation en quelques clics, paiement sécurisé en ligne.", color: "yellow" },
+                  { icon: Globe, title: "Multi-devises", description: "Payez dans votre devise préférée avec conversion automatique.", color: "blue" },
+                  { icon: Users, title: "Support 24/7", description: "Notre équipe est toujours disponible pour répondre à vos questions.", color: "purple" },
+                  { icon: TrendingUp, title: "Système de notation", description: "Lisez les avis vérifiés des utilisateurs pour faire le meilleur choix.", color: "orange" }
+                ];
+                return [...features, ...features].map((feature, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-white dark:bg-charcoal-900 rounded-xl p-8 shadow-md hover:shadow-lg transition-shadow border border-charcoal-100 dark:border-charcoal-800 w-[350px] md:w-[400px] shrink-0 whitespace-normal"
+                  >
+                    <div className={`w-14 h-14 rounded-lg mb-4 flex items-center justify-center bg-${feature.color}-100 dark:bg-${feature.color}-900/30`}>
+                      <feature.icon className={`w-7 h-7 text-${feature.color}-600 dark:text-${feature.color}-400`} />
+                    </div>
+                    <h3 className="text-xl font-bold text-charcoal-900 dark:text-white mb-2">{feature.title}</h3>
+                    <p className="text-charcoal-600 dark:text-charcoal-400">{feature.description}</p>
+                  </div>
+                ));
+              })()}
+            </motion.div>
           </div>
         </div>
       </section>

@@ -14,16 +14,41 @@ export function DashboardLayout({ children }) {
   const { user, logout } = useAuth()
   const { t } = useLanguage()
   const pathname = usePathname()
-  // Controls the mobile dropdown menu state; desktop navigation is always visible.
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+  const [userRole, setUserRole] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('hrs_current_user')
+      if (stored) {
+        try {
+          return JSON.parse(stored).role
+        } catch {
+          return null
+        }
+      }
+    }
+    return null
+  })
+
+  // Defer user-dependent rendering to the client to prevent SSR/CSR mismatch
+  React.useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  React.useEffect(() => {
+    if (user?.role) {
+      setUserRole(user.role)
+    }
+  }, [user])
 
   // Define sidebar links based on role
   const getSidebarLinks = () => {
-    const role = user?.role || pathname.split('/')[1]
+    const role = userRole || user?.role || pathname.split('/')[1]
     
     switch (role) {
       case 'client':
         return [
+          { href: '/', label: t('nav_home'), icon: Home },
           { href: '/client', label: t('tab_reservations'), icon: LayoutDashboard },
           { href: '/client/search', label: t('nav_search'), icon: Search },
           { href: '/client#reservations', label: t('tab_reservations'), icon: Calendar },
@@ -32,6 +57,7 @@ export function DashboardLayout({ children }) {
         ]
       case 'host':
         return [
+          { href: '/', label: t('nav_home'), icon: Home },
           { href: '/host', label: t('host_dashboard'), icon: LayoutDashboard },
           { href: '/host/listings/new', label: t('host_new_listing'), icon: PlusIcon },
           { href: '/host#reservations', label: t('host_res_received'), icon: Calendar },
@@ -41,6 +67,7 @@ export function DashboardLayout({ children }) {
         ]
       case 'provider':
         return [
+          { href: '/', label: t('nav_home'), icon: Home },
           { href: '/provider', label: 'Tableau de bord', icon: LayoutDashboard },
           { href: '/provider#services', label: t('provider_services'), icon: Briefcase },
           { href: '/provider#commandes', label: 'Commandes', icon: Calendar },
@@ -50,9 +77,10 @@ export function DashboardLayout({ children }) {
         ]
       case 'admin':
         return [
+          { href: '/', label: t('nav_home'), icon: Home },
           { href: '/admin', label: 'Vue globale', icon: LayoutDashboard },
           { href: '/admin#users', label: 'Utilisateurs', icon: Users },
-          { href: '/admin#annonces', label: 'Annonces', icon: Home },
+          { href: '/admin#annonces', label: 'Annonces', icon: Box },
           { href: '/admin#finances', label: 'Finances', icon: CreditCard },
           { href: '/settings', label: t('nav_settings'), icon: Settings },
         ]
@@ -82,7 +110,9 @@ export function DashboardLayout({ children }) {
     )
   }
 
-  const links = getSidebarLinks()
+  // Only compute links after mount (client-side) to avoid SSR/CSR hydration mismatch.
+  // On the server and first paint, we render an empty nav — identical on both sides.
+  const links = isMounted ? getSidebarLinks() : []
   const router = useRouter()
 
   return (

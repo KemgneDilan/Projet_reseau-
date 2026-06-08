@@ -10,9 +10,13 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     // Check localStorage or system preference on mount
     const storedTheme = localStorage.getItem('hrs_theme')
-    if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    if (storedTheme === 'dark') {
       setIsDarkMode(true)
       document.documentElement.classList.add('dark')
+    } else {
+      setIsDarkMode(false)
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('hrs_theme', 'light')
     }
   }, [])
 

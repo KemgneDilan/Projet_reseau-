@@ -7,11 +7,13 @@ import { MapPin, Star, Share, Heart, ChevronLeft, MessageSquare, CheckCircle } f
 import { Button } from "@/components/ui/Button"
 import { ReviewSection } from "@/components/ui/ReviewSection"
 import { MessagingDrawer } from "@/components/features/MessagingDrawer"
+import { useAuth } from "@/app/contexts/AuthContext"
 
 export default function ServicePage() {
   const { id } = useParams()
   const router = useRouter()
   const [isMessagingOpen, setIsMessagingOpen] = React.useState(false)
+  const { user } = useAuth()
 
   const service = services.find(s => s.id === id)
   const [reviews, setReviews] = React.useState(() => {
@@ -124,7 +126,14 @@ export default function ServicePage() {
               <span className="text-charcoal-500"> / {service.unit}</span>
             </div>
 
-            <Button className="w-full h-12 text-lg mb-4">Commander ce service</Button>
+            {user?.role === 'host' || user?.role === 'provider' ? (
+              <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/30 rounded-xl p-4 text-orange-800 dark:text-orange-300 text-sm mb-4">
+                <p className="font-semibold mb-1">Espace {user?.role === 'host' ? 'Hôte' : 'Prestataire'}</p>
+                <p>En tant que {user?.role === 'host' ? 'hôte' : 'prestataire'}, vous ne pouvez pas commander de services sur la plateforme.</p>
+              </div>
+            ) : (
+              <Button className="w-full h-12 text-lg mb-4">Commander ce service</Button>
+            )}
             
             <div className="text-center">
               <p className="text-sm text-charcoal-500 mb-3">Besoin d'un devis personnalisé ?</p>

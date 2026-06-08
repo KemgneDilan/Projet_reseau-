@@ -9,19 +9,40 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { listings, services } from "@/lib/mockData"
 import { getReviewsFor, calculateAverageRating } from '@/lib/ratingUtils'
+import { useCurrency } from "@/app/contexts/CurrencyContext"
 
 export default function ClientSearchPage() {
+  const { currency, formatPrice, RATES } = useCurrency()
+  const maxPriceLimit = Math.round(50000 * (RATES[currency] || 1))
+
   const [results, setResults] = React.useState(() => listings.map((l) => ({ type: 'listing', data: l })))
   const [searchTarget, setSearchTarget] = React.useState('listings') // listings | services | both
   const [searchMode, setSearchMode] = React.useState('keywords') // keywords | filters
   const [showFilters, setShowFilters] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(false)
+
   const [filters, setFilters] = React.useState({
     priceMin: 0,
-    priceMax: 15000,
+    priceMax: 50000,
     rating: 0,
     amenities: [],
   })
+
+  // Synchronize priceMax to the calculated max limit when currency changes
+  const prevCurrencyRef = React.useRef(currency)
+  React.useEffect(() => {
+    if (prevCurrencyRef.current !== currency) {
+      const rateDiff = (RATES[currency] || 1) / (RATES[prevCurrencyRef.current] || 1)
+      setFilters(prev => ({
+        ...prev,
+        priceMin: Math.min(Math.round(prev.priceMin * rateDiff), maxPriceLimit),
+        priceMax: Math.min(Math.round(prev.priceMax * rateDiff), maxPriceLimit)
+      }))
+      prevCurrencyRef.current = currency
+    } else {
+      setFilters(prev => ({ ...prev, priceMax: maxPriceLimit }))
+    }
+  }, [currency, maxPriceLimit, RATES])
   const [searchParams, setSearchParams] = React.useState(null)
   const [ratingMap, setRatingMap] = React.useState({})
 
@@ -36,9 +57,12 @@ export default function ClientSearchPage() {
       const includesListings = searchTarget === 'listings' || searchTarget === 'both'
       const includesServices = searchTarget === 'services' || searchTarget === 'both'
 
+      const minXAF = filters.priceMin / (RATES[currency] || 1)
+      const maxXAF = filters.priceMax / (RATES[currency] || 1)
+
       if (includesListings) {
         const filtered = listings.filter((listing) => {
-          const matchPrice = listing.price >= filters.priceMin && listing.price <= filters.priceMax
+          const matchPrice = listing.price >= minXAF && listing.price <= maxXAF
           const listingAvg = ratingMap[listing.id] || listing.rating || 0
           const matchRating = !filters.rating || listingAvg >= filters.rating
           if (params?.q) {
@@ -51,7 +75,7 @@ export default function ClientSearchPage() {
 
       if (includesServices) {
         const filteredS = services.filter((s) => {
-          const matchPrice = s.price >= filters.priceMin && s.price <= filters.priceMax
+          const matchPrice = s.price >= minXAF && s.price <= maxXAF
           const matchCategory = !filters.category || s.category === filters.category
           if (params?.q) {
             return (s.title + ' ' + s.description).toLowerCase().includes(params.q.toLowerCase()) && matchPrice && matchCategory
@@ -153,44 +177,50 @@ export default function ClientSearchPage() {
               </div>
 
               <div className="space-y-6">
-                {/* Price Filter */}
-                <div>
-                  <label className="block text-sm font-semibold text-charcoal-900 mb-3">
-                    Prix par nuit
-                  </label>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-charcoal-600">
-                        {filters.priceMin} FCFA
-                      </span>
-                      <input
-                        type="range"
-                        min="0"
-                        max="15000"
-                        value={filters.priceMin}
-                        onChange={(e) =>
-                          handleFilterChange("priceMin", parseInt(e.target.value))
-                        }
-                        className="flex-1"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-charcoal-600">
-                        {filters.priceMax} FCFA
-                      </span>
-                      <input
-                        type="range"
-                        min="0"
-                        max="15000"
-                        value={filters.priceMax}
-                        onChange={(e) =>
-                          handleFilterChange("priceMax", parseInt(e.target.value))
-                        }
-                        className="flex-1"
-                      />
-                    </div>
-                  </div>
-                </div>
+                 {/* Price Filter */}
+                 <div>
+                   <label className="block text-sm font-semibold text-charcoal-900 mb-3">
+                     Prix par nuit
+                   </label>
+                   <div className="space-y-3">
+                     <div>
+                       <label className="block text-xs font-semibold text-charcoal-700 mb-1">Montant Minimum</label>
+                       <div className="flex items-center gap-2">
+                         <span className="text-xs text-charcoal-600 w-24">
+                           {formatPrice(filters.priceMin / (RATES[currency] || 1))}
+                         </span>
+                         <input
+                           type="range"
+                           min="0"
+                           max={maxPriceLimit}
+                           value={filters.priceMin}
+                           onChange={(e) =>
+                             handleFilterChange("priceMin", parseInt(e.target.value))
+                           }
+                           className="flex-1"
+                         />
+                       </div>
+                     </div>
+                     <div>
+                       <label className="block text-xs font-semibold text-charcoal-700 mb-1">Montant Maximum</label>
+                       <div className="flex items-center gap-2">
+                         <span className="text-xs text-charcoal-600 w-24">
+                           {formatPrice(filters.priceMax / (RATES[currency] || 1))}
+                         </span>
+                         <input
+                           type="range"
+                           min="0"
+                           max={maxPriceLimit}
+                           value={filters.priceMax}
+                           onChange={(e) =>
+                             handleFilterChange("priceMax", parseInt(e.target.value))
+                           }
+                           className="flex-1"
+                         />
+                       </div>
+                     </div>
+                   </div>
+                 </div>
 
                 {/* Rating Filter */}
                 <div>
@@ -258,7 +288,7 @@ export default function ClientSearchPage() {
                   onClick={() => {
                     setFilters({
                       priceMin: 0,
-                      priceMax: 5000,
+                      priceMax: 50000,
                       rating: 0,
                       amenities: [],
                       category: ''
@@ -330,7 +360,7 @@ export default function ClientSearchPage() {
                   <Button onClick={() => {
                     setFilters({
                       priceMin: 0,
-                      priceMax: 5000,
+                      priceMax: 50000,
                       rating: 0,
                       amenities: [],
                     })

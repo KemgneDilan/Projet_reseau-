@@ -62,6 +62,20 @@ export default function ClientDashboard() {
   const [ratingMap, setRatingMap] = React.useState({})
 
   React.useEffect(() => {
+    if (user) {
+      const userKey = `hrs_reservations_${user.id}`
+      const savedReservations = JSON.parse(localStorage.getItem(userKey) || '[]')
+      const merged = [...savedReservations]
+      mockReservations.forEach(mockRes => {
+        if (!merged.some(r => r.id === mockRes.id)) {
+          merged.push(mockRes)
+        }
+      })
+      setReservations(merged)
+    }
+  }, [user])
+
+  React.useEffect(() => {
     // Load favorites from local storage
     const savedFavIds = JSON.parse(localStorage.getItem('hrs_favorites') || '[]')
     const actualFavorites = savedFavIds.map(id => listings.find(l => l.id === id)).filter(Boolean)
@@ -271,6 +285,52 @@ export default function ClientDashboard() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Media Files */}
+                      {(reservation.photos?.length > 0 || reservation.video) && (
+                        <div className="mt-4 pt-4 border-t border-charcoal-150">
+                          <p className="text-xs font-bold text-charcoal-500 uppercase tracking-wider mb-2.5">
+                            Médias joints ({reservation.photos?.length || 0} photo{reservation.photos?.length > 1 ? 's' : ''}, {reservation.video ? '1 vidéo' : 'sans vidéo'})
+                          </p>
+                          <div className="flex flex-wrap gap-3 items-center">
+                            {reservation.photos?.map((photo, pIdx) => (
+                              <div key={pIdx} className="w-16 h-16 rounded-lg overflow-hidden border border-charcoal-200 bg-charcoal-50 flex items-center justify-center shrink-0 shadow-sm relative group">
+                                {photo.data && photo.data !== 'placeholder' ? (
+                                  <img
+                                    src={photo.data}
+                                    alt={photo.name}
+                                    className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
+                                    onClick={() => {
+                                      const w = window.open()
+                                      w.document.write(`<img src="${photo.data}" style="max-width:100%; max-height:100%; display:block; margin:auto;" />`)
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="text-[10px] text-charcoal-400 font-semibold p-1 truncate text-center">
+                                    📷 {photo.name}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+
+                            {reservation.video && (
+                              <div className="w-40 h-16 rounded-lg overflow-hidden border border-charcoal-200 bg-charcoal-900 flex items-center justify-center shrink-0 shadow-sm relative">
+                                {reservation.video.data && reservation.video.data !== 'placeholder' ? (
+                                  <video
+                                    src={reservation.video.data}
+                                    controls
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="text-[9px] text-white p-2 font-semibold text-center truncate">
+                                    🎥 {reservation.video.name}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       <div className="mt-4 pt-4 border-t border-charcoal-200 flex gap-2 flex-wrap">
                         <Link href={`/messages?contact=${reservation.id}`}>

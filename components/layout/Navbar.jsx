@@ -62,16 +62,16 @@ export function Navbar() {
                 {/* Desktop User Menu */}
                 <div className="hidden sm:flex items-center gap-2 relative">
                   <div className="relative">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="relative hover:bg-charcoal-100"
-                      onClick={() => setIsMiniChatOpen(true)}
-                    >
-                      <MessageSquare className="h-5 w-5 text-charcoal-700" />
-                      <span className="absolute top-1 right-1 flex h-2.5 w-2.5 rounded-full bg-red-500"></span>
-                    </Button>
-                    <MiniChat isOpen={isMiniChatOpen} onClose={() => setIsMiniChatOpen(false)} />
+                    <Link href="/messages">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="relative hover:bg-charcoal-100"
+                      >
+                        <MessageSquare className="h-5 w-5 text-charcoal-700" />
+                        <span className="absolute top-1 right-1 flex h-2.5 w-2.5 rounded-full bg-red-500"></span>
+                      </Button>
+                    </Link>
                   </div>
 
                   {/* User Profile Menu */}

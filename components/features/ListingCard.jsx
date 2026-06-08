@@ -2,6 +2,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
+import Image from "next/image"
 import { Star, MapPin, Wifi, Utensils, Dumbbell, Heart } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { getReviewsFor, calculateAverageRating } from '@/lib/ratingUtils'
@@ -36,10 +37,12 @@ export function ListingCard({
         <div className="group cursor-pointer h-full flex flex-col bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
           {/* Image Container */}
           <div className="relative h-56 md:h-64 overflow-hidden bg-charcoal-100">
-            <img
+            <Image
               src={image || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=500&q=60"}
               alt={title}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              fill
+              className="object-cover group-hover:scale-110 transition-transform duration-300"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-charcoal-900/20 to-transparent" />
 
