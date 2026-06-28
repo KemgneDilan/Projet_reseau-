@@ -114,7 +114,7 @@ export default function RegisterPage() {
               {/* Nom d'utilisateur */}
               <div>
                 <label className="block text-sm font-medium text-charcoal-700 mb-1">
-                  Nom d'utilisateur *
+                  Nom d&apos;utilisateur *
                 </label>
                 <Input 
                   placeholder="Ex: Dilan" 
@@ -189,7 +189,7 @@ export default function RegisterPage() {
                 className="w-full h-12 text-lg mt-2" 
                 disabled={loading}
               >
-                {loading ? "Inscription en cours..." : "S'inscrire"}
+                {loading ? "Inscription en cours..." : "S&apos;inscrire"}
               </Button>
             </form>
             <div className="mt-6 text-center text-sm text-charcoal-500">

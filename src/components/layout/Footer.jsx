@@ -37,7 +37,7 @@ export function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="bg-gradient-to-br from-terracotta-500 to-orange-500 text-white p-2 rounded-lg">
+              <div className="bg-linear-to-br from-terracotta-500 to-orange-500 text-white p-2 rounded-lg">
                 <Home className="h-6 w-6" />
               </div>
               <span className="text-xl font-bold">Loomdaah</span>
@@ -76,8 +76,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/services" className="hover:text-terracotta-400 transition-colors">
-                  {t('footer_services')}
+                <Link href="/map" className="hover:text-terracotta-400 transition-colors">
+                  {t('nav_map')}
                 </Link>
               </li>
               <li>
@@ -130,17 +130,17 @@ export function Footer() {
             <h4 className="font-semibold text-white mb-4">{t('footer_contact_us')}</h4>
             <ul className="space-y-3 text-charcoal-400 text-sm">
               <li className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-terracotta-500 flex-shrink-0 mt-0.5" />
+                <MapPin className="h-5 w-5 text-terracotta-500 shrink-0 mt-0.5" />
                 <span>Melen, Yaoundé, Cameroun</span>
               </li>
               <li className="flex items-center gap-3">
-                <Phone className="h-5 w-5 text-terracotta-500 flex-shrink-0" />
+                <Phone className="h-5 w-5 text-terracotta-500 shrink-0" />
                 <a href="tel:+237600000000" className="hover:text-terracotta-400 transition-colors">
                   +237 6 00 00 00 00
                 </a>
               </li>
               <li className="flex items-center gap-3">
-                <Mail className="h-5 w-5 text-terracotta-500 flex-shrink-0" />
+                <Mail className="h-5 w-5 text-terracotta-500 shrink-0" />
                 <a href="mailto:info@hrs.com" className="hover:text-terracotta-400 transition-colors">
                   info@hrs.com
                 </a>

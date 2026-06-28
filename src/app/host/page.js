@@ -13,6 +13,7 @@ import { useCurrency } from '@/app/contexts/CurrencyContext'
 import { useRouter } from 'next/navigation'
 import { EditItemModal } from '@/components/features/EditItemModal'
 import Link from 'next/link'
+import Image from 'next/image'
 import { calculateAverageRating, getReviewsFor } from '@/lib/ratingUtils'
 
 const mockReviewsByListing = {
@@ -132,6 +133,7 @@ export default function HostDashboard() {
         }
       })
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setReceivedReservations(merged)
     }
   }, [user, myListings])
@@ -146,9 +148,11 @@ export default function HostDashboard() {
     if (user) {
       const local = localStorage.getItem(`hrs_listings_${user.id}`)
       if (local) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMyListings(JSON.parse(local))
       } else {
         const initial = defaultListings.filter((l) => l.hostId === user.id || l.hostId === 'u2')
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMyListings(initial)
       }
     }
@@ -248,7 +252,7 @@ export default function HostDashboard() {
     return (
       <Card key={listing.id} className="overflow-hidden border border-charcoal-200 dark:border-charcoal-800 flex flex-col h-full bg-white dark:bg-charcoal-900 shadow-sm hover:shadow-md transition-shadow">
         <div className="h-44 overflow-hidden relative shrink-0">
-          <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" />
+          <Image src={listing.images[0]} alt={listing.title} fill className="object-cover" unoptimized />
           <Badge className={`absolute top-2 right-2 border-none shadow-sm ${listing.status === 'inactive' ? 'bg-charcoal-500 text-white' : 'bg-white text-charcoal-900'}`}>
             {listing.status === 'inactive' ? t('host_inactive') : t('host_active')}
           </Badge>
@@ -289,7 +293,7 @@ export default function HostDashboard() {
                         <span className="text-yellow-500 flex items-center gap-0.5">★ {rev.rating}</span>
                       </div>
                       <p className="text-charcoal-600 dark:text-charcoal-400 italic">
-                        "{rev.comment}"
+                        &quot;{rev.comment}&quot;
                       </p>
                     </div>
                   ))}
@@ -392,7 +396,7 @@ export default function HostDashboard() {
                 </div>
                 <p className="text-sm font-medium text-charcoal-500 dark:text-charcoal-400">{t('host_unread_messages')}</p>
                 <h3 className="text-3xl font-extrabold text-charcoal-900 dark:text-white mt-1">3</h3>
-                <span className="text-xs text-terracotta-500 font-semibold mt-2 block flex items-center gap-1">
+                <span className="text-xs text-terracotta-500 font-semibold mt-2 flex items-center gap-1">
                   {t('host_access_messages')} <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
                 </span>
               </Link>
@@ -482,10 +486,12 @@ export default function HostDashboard() {
                               {reservation.photos?.map((photo, pIdx) => (
                                 <div key={pIdx} className="w-8 h-8 rounded border border-charcoal-200 dark:border-charcoal-700 overflow-hidden bg-charcoal-50 dark:bg-charcoal-950 flex items-center justify-center shrink-0 shadow-sm relative group">
                                   {photo.data && photo.data !== 'placeholder' ? (
-                                    <img
+                                    <Image
                                       src={photo.data}
                                       alt={photo.name}
-                                      className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
+                                      fill
+                                      unoptimized
+                                      className="object-cover cursor-pointer hover:scale-105 transition-transform"
                                       onClick={() => {
                                         const w = window.open()
                                         w.document.write(`<img src="${photo.data}" style="max-width:100%; max-height:100%; display:block; margin:auto;" />`)
@@ -518,7 +524,7 @@ export default function HostDashboard() {
                         {/* Guest Profile */}
                         <td className="p-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-terracotta-500 flex items-center justify-center font-bold text-white text-xs">
+                            <div className="w-9 h-9 rounded-full bg-linear-to-br from-orange-400 to-terracotta-500 flex items-center justify-center font-bold text-white text-xs">
                               {reservation.guestAvatar}
                             </div>
                             <div>
@@ -616,7 +622,7 @@ export default function HostDashboard() {
               <Card className="border border-charcoal-200 dark:border-charcoal-800">
                 <CardContent className="p-6">
                   <p className="text-sm font-medium text-charcoal-500">{t('host_total_ca')}</p>
-                  <h3 className="text-3xl font-extrabold text-charcoal-900 dark:text-white mt-1 text-green-600 dark:text-green-400">
+                  <h3 className="text-3xl font-extrabold mt-1 text-green-600 dark:text-green-400">
                     {formatPrice(totalEarnings)}
                   </h3>
                   <span className="text-xs text-charcoal-400 block mt-2">{t('host_ca_desc')}</span>
@@ -671,7 +677,7 @@ export default function HostDashboard() {
                       </div>
                       <div className="h-4 w-full bg-charcoal-100 dark:bg-charcoal-800 rounded-full overflow-hidden">
                         <motion.div 
-                          className={`h-full rounded-full bg-gradient-to-r ${item.color}`}
+                          className={`h-full rounded-full bg-linear-to-r ${item.color}`}
                           initial={{ width: 0 }}
                           animate={{ width: item.percentage }}
                           transition={{ duration: 0.8, ease: "easeOut" }}

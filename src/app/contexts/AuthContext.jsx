@@ -37,6 +37,7 @@ export const AuthProvider = ({ children }) => {
       const storedUser = localStorage.getItem('hrs_current_user')
       if (storedUser) {
         try {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setUser(JSON.parse(storedUser))
         } catch {
           localStorage.removeItem('hrs_current_user')
@@ -44,8 +45,10 @@ export const AuthProvider = ({ children }) => {
       }
       const storedMode = localStorage.getItem('hrs_current_mode')
       if (storedMode) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCurrentModeState(storedMode)
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false)
     }
   }, [])

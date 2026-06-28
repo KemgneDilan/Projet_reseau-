@@ -8,6 +8,7 @@ export function EditItemModal({ isOpen, onClose, item, type, onSave }) {
   const [formData, setFormData] = React.useState(item || {})
 
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (item) setFormData(item)
   }, [item])
 
@@ -69,7 +70,7 @@ export function EditItemModal({ isOpen, onClose, item, type, onSave }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-charcoal-700 mb-1">URL de l'image (Simulation upload)</label>
+          <label className="block text-sm font-medium text-charcoal-700 mb-1">URL de l&apos;image (Simulation upload)</label>
           <Input 
             name="imageUrl" 
             value={formData.images?.[0] || ''} 

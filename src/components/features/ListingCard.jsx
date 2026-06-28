@@ -7,10 +7,35 @@ import { Star, MapPin, Wifi, Utensils, Dumbbell, Heart, Sparkles } from "lucide-
 import { Button } from "@/components/ui/Button"
 import { getReviewsFor, calculateAverageRating } from '@/lib/ratingUtils'
 
+function ListingRating({ id, rating, reviews }) {
+  let avg, count
+  try {
+    const rv = getReviewsFor('listing', id)
+    avg = calculateAverageRating(rv.map(r => ({ rating: r.rating }))) || rating
+    count = rv.length || reviews
+  } catch (e) {
+    return null
+  }
+  if (!avg) return null
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-1">
+        {[...Array(5)].map((_, i) => (
+          <Star
+            key={i}
+            className={`h-4 w-4 ${i < Math.floor(avg) ? 'fill-yellow-400 text-yellow-400' : 'text-charcoal-300'}`}
+          />
+        ))}
+      </div>
+      <span className="text-sm font-semibold text-charcoal-900">{Number(avg).toFixed(1)}</span>
+      <span className="text-sm text-charcoal-500">({count} avis)</span>
+    </div>
+  )
+}
+
 export function ListingCard({ 
   id, 
   title, 
-  location, 
   location,
   rating, 
   reviews, 
@@ -45,13 +70,13 @@ export function ListingCard({
               className="object-cover group-hover:scale-110 transition-transform duration-300"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-charcoal-900/20 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-charcoal-900/20 to-transparent" />
 
             {/* Social Match Badge */}
             {relevanceScore !== undefined && (
               <div className="absolute top-3 left-3 flex items-center gap-1 bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-bold text-xs shadow-lg">
                 <Sparkles className="h-3.5 w-3.5 fill-white" />
-                <span>{relevanceScore}% d'affinité</span>
+                <span>{relevanceScore}% d&apos;affinité</span>
               </div>
             )}
 
@@ -91,39 +116,7 @@ export function ListingCard({
             </div>
 
             {/* Rating (dynamic from persisted reviews) */}
-            {(
-              (() => {
-                try {
-                  const rv = getReviewsFor('listing', id)
-                  const avg = calculateAverageRating(rv.map(r => ({ rating: r.rating }))) || rating
-                  const count = rv.length || reviews
-                  return (
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="flex items-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < Math.floor(avg)
-                                ? "fill-yellow-400 text-yellow-400"
-                                : "text-charcoal-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-sm font-semibold text-charcoal-900">
-                        {Number(avg).toFixed(1)}
-                      </span>
-                      <span className="text-sm text-charcoal-500">
-                        ({count} avis)
-                      </span>
-                    </div>
-                  )
-                } catch (e) {
-                  return null
-                }
-              })()
-            )}
+            <ListingRating id={id} rating={rating} reviews={reviews} />
 
             {/* Amenities */}
             {amenities.length > 0 && (

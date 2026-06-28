@@ -11,9 +11,11 @@ export const ThemeProvider = ({ children }) => {
     // Check localStorage or system preference on mount
     const storedTheme = localStorage.getItem('hrs_theme')
     if (storedTheme === 'dark') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsDarkMode(true)
       document.documentElement.classList.add('dark')
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsDarkMode(false)
       document.documentElement.classList.remove('dark')
       localStorage.setItem('hrs_theme', 'light')

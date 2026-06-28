@@ -6,7 +6,7 @@ import { useAuth } from '@/app/contexts/AuthContext'
 import { useLanguage } from '@/app/contexts/LanguageContext'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
-  Home, Search, Calendar, Star, Users, Briefcase, Settings, 
+  Home, Search, Calendar, Star, Users, Settings, 
   LogOut, Menu, X, LayoutDashboard, CreditCard, Box, MapPin, MessageSquare
 } from 'lucide-react'
 
@@ -30,13 +30,14 @@ export function DashboardLayout({ children }) {
     return null
   })
 
-  // Defer user-dependent rendering to the client to prevent SSR/CSR mismatch
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true)
   }, [])
 
   React.useEffect(() => {
     if (user?.role) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUserRole(user.role)
     }
   }, [user])
@@ -62,16 +63,6 @@ export function DashboardLayout({ children }) {
           { href: '/host/listings/new', label: t('host_new_listing'), icon: PlusIcon },
           { href: '/host#reservations', label: t('host_res_received'), icon: Calendar },
           { href: '/host#finances', label: t('host_finances_title'), icon: CreditCard },
-          { href: '/messages', label: t('nav_messages'), icon: MessageSquare },
-          { href: '/settings', label: t('nav_settings'), icon: Settings },
-        ]
-      case 'provider':
-        return [
-          { href: '/', label: t('nav_home'), icon: Home },
-          { href: '/provider', label: 'Tableau de bord', icon: LayoutDashboard },
-          { href: '/provider#services', label: t('provider_services'), icon: Briefcase },
-          { href: '/provider#commandes', label: 'Commandes', icon: Calendar },
-          { href: '/provider#finances', label: t('provider_finances_title'), icon: CreditCard },
           { href: '/messages', label: t('nav_messages'), icon: MessageSquare },
           { href: '/settings', label: t('nav_settings'), icon: Settings },
         ]
@@ -149,16 +140,6 @@ export function DashboardLayout({ children }) {
           </nav>
 
           <div className="flex items-center gap-3">
-            {user?.role === 'provider' && (
-              <button
-                onClick={() => router.back()}
-                className="hidden md:inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-charcoal-600 dark:text-charcoal-300 hover:bg-charcoal-100 dark:hover:bg-charcoal-800 transition-colors"
-                aria-label="Retour"
-              >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                <span>{t('back')}</span>
-              </button>
-            )}
 
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -169,7 +150,7 @@ export function DashboardLayout({ children }) {
             </button>
 
             <Link href="/settings" className="flex items-center gap-2 rounded-full bg-charcoal-100 dark:bg-charcoal-900 px-3 py-2 transition-colors hover:bg-charcoal-200 dark:hover:bg-charcoal-800">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-terracotta-500 to-terracotta-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+              <div className="w-9 h-9 rounded-full bg-linear-to-br from-terracotta-500 to-terracotta-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
                 {user?.username?.charAt(0)?.toUpperCase() || 'U'}
               </div>
             </Link>

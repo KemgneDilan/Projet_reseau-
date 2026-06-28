@@ -32,6 +32,7 @@ export default function SettingsPage() {
   // Prevent SSR/CSR hydration mismatch: all auth-dependent rendering
   // is deferred to after first client mount.
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true)
   }, [])
 
@@ -43,12 +44,14 @@ export default function SettingsPage() {
 
   React.useEffect(() => {
     if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setConnectionData({
         email: user.email || '',
         phone: user.phone || '',
         password: '',
         confirmPassword: ''
       })
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAccountData({
         username: user.username || '',
         city: user.city || ''
@@ -102,7 +105,7 @@ export default function SettingsPage() {
           {t('nav_settings')}
         </h1>
         <p className="text-sm text-charcoal-500 dark:text-charcoal-400 mt-1">
-          Gérez vos préférences de langue, d'affichage, et consultez les informations légales de la plateforme.
+          Gérez vos préférences de langue, d&apos;affichage, et consultez les informations légales de la plateforme.
         </p>
       </div>
 
@@ -261,7 +264,7 @@ export default function SettingsPage() {
                 <h3 className="text-lg font-semibold text-charcoal-900 dark:text-white">Informations du compte</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Nom d'utilisateur</label>
+                    <label className="text-sm font-medium text-charcoal-700 dark:text-charcoal-300">Nom d&apos;utilisateur</label>
                     <input
                       type="text"
                       value={accountData.username}
@@ -304,10 +307,10 @@ export default function SettingsPage() {
         >
           <div className="p-6 space-y-6">
             <h2 className="text-xl font-bold text-charcoal-900 dark:text-white border-b border-charcoal-100 dark:border-charcoal-800 pb-2">
-              Centres d'intérêt (Affinité Sociale)
+              Centres d&apos;intérêt (Affinité Sociale)
             </h2>
             <p className="text-sm text-charcoal-500">
-              Sélectionnez vos centres d'intérêt pour améliorer la recommandation sociale et trouver des hôtes partageant les mêmes passions que vous via l'indice de Jaccard.
+              Sélectionnez vos centres d&apos;intérêt pour améliorer la recommandation sociale et trouver des hôtes partageant les mêmes passions que vous via l&apos;indice de Jaccard.
             </p>
             <div className="flex flex-wrap gap-2 pt-2">
               {['Cuisine local', 'Randonnée', 'Lecture', 'Musique', 'Art', 'Cinéma', 'Voyages', 'Langues', 'Sport', 'Photographie', 'Nature'].map((interest) => {
@@ -349,7 +352,7 @@ export default function SettingsPage() {
         >
           <div className="p-6 space-y-6">
             <h2 className="text-xl font-bold text-charcoal-900 dark:text-white border-b border-charcoal-100 dark:border-charcoal-800 pb-2">
-              Vérification d'identité (KYC)
+              Vérification d&apos;identité (KYC)
             </h2>
             
             {user.kycStatus === 'none' && (
@@ -407,7 +410,7 @@ export default function SettingsPage() {
                         name="docType"
                         className="w-full rounded-xl border border-charcoal-200 dark:border-charcoal-700 bg-white dark:bg-charcoal-800 px-4 py-3 text-charcoal-900 dark:text-white outline-none"
                       >
-                        <option value="CNI">Carte Nationale d'Identité (CNI)</option>
+                        <option value="CNI">Carte Nationale d&apos;Identité (CNI)</option>
                         <option value="Passeport">Passeport</option>
                       </select>
                     </div>
@@ -442,7 +445,7 @@ export default function SettingsPage() {
                 <div className="text-4xl mb-3 animate-pulse">⏳</div>
                 <h3 className="font-semibold text-charcoal-900 dark:text-white mb-2">Vérification en cours</h3>
                 <p className="text-sm text-charcoal-500 max-w-md">
-                  Votre demande de vérification d'identité est en cours de traitement par nos administrateurs. Cela prend généralement moins de 24 heures.
+                  Votre demande de vérification d&apos;identité est en cours de traitement par nos administrateurs. Cela prend généralement moins de 24 heures.
                 </p>
               </div>
             )}

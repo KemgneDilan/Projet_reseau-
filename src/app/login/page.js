@@ -94,7 +94,7 @@ export default function LoginPage() {
             <div className="mt-6 text-center text-sm text-charcoal-500">
               Pas encore de compte ?{' '}
               <Link href="/register" className="text-terracotta-600 font-semibold hover:underline">
-                S'inscrire
+                S&apos;inscrire
               </Link>
             </div>
             <div className="mt-4 text-center text-xs text-charcoal-400">

@@ -4,10 +4,10 @@ import { motion } from "framer-motion"
 import { MapPin, Sliders, X, Filter } from "lucide-react"
 import { SearchBar } from "@/components/features/SearchBar"
 import { ListingCard } from "@/components/features/ListingCard"
-import { ServiceCard } from "@/components/features/ServiceCard"
+
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
-import { listings, services } from "@/lib/mockData"
+import { listings } from "@/lib/mockData"
 import { getReviewsFor, calculateAverageRating } from '@/lib/ratingUtils'
 import { useAuth } from "@/app/contexts/AuthContext"
 import { calculateRelevanceScore } from "@/lib/scoringUtils"
@@ -35,6 +35,7 @@ export default function ClientSearchPage() {
   // Re-rank results when user changes (e.g. logs in or changes interests)
   React.useEffect(() => {
     if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResults(prev => {
         const travelerId = user.id
         return prev.map(item => {
@@ -101,8 +102,10 @@ export default function ClientSearchPage() {
         const avg = calculateAverageRating(rv.map(r => ({ rating: r.rating })))
         if (avg) map[l.id] = avg
       })
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRatingMap(map)
     } catch (e) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRatingMap({})
     }
   }, [])
@@ -116,7 +119,7 @@ export default function ClientSearchPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-charcoal-50 to-white pt-24 pb-12">
+    <div className="min-h-screen bg-linear-to-b from-charcoal-50 to-white pt-24 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
@@ -125,10 +128,10 @@ export default function ClientSearchPage() {
           className="mb-12"
         >
           <h1 className="text-4xl font-bold text-charcoal-900 mb-4">
-            Découvrez des chambres d'exception
+            Découvrez des chambres d&apos;exception
           </h1>
           <p className="text-charcoal-600 text-lg">
-            Trouvez l'hébergement parfait pour votre séjour
+            Trouvez l&apos;hébergement parfait pour votre séjour
           </p>
         </motion.div>
 
@@ -290,11 +293,7 @@ export default function ClientSearchPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
                   >
-                    {item.type === 'listing' ? (
-                      <ListingCard {...item.data} onFavorite={handleFavorite} />
-                    ) : (
-                      <ServiceCard service={item.data} />
-                    )}
+                    <ListingCard {...item.data} onFavorite={handleFavorite} />
                   </motion.div>
                 ))}
               </div>

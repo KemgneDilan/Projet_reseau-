@@ -1,10 +1,12 @@
 "use client"
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, useMemo } from "react"
 import { motion } from "framer-motion"
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow, Autocomplete } from "@react-google-maps/api"
 import { listings } from "@/lib/mockData"
 import Link from "next/link"
 import { MapPin, Search } from "lucide-react"
+import Image from "next/image"
+
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 
@@ -19,6 +21,14 @@ const center = {
   lng: 9.7679
 }
 
+function getDeterministicOffset(str) {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return (Math.abs(hash) % 1000) / 1000 - 0.5
+}
+
 export default function MapPage() {
   // Use environment variable for the Google Maps API Key
   const { isLoaded, loadError } = useJsApiLoader({
@@ -31,6 +41,13 @@ export default function MapPage() {
   const [selectedListing, setSelectedListing] = useState(null)
   const [autocomplete, setAutocomplete] = useState(null)
   const [searchCity, setSearchCity] = useState("")
+
+  // Pre-compute stable coordinates per listing (avoids calling Math.random during render)
+  const listingsWithCoords = useMemo(() => listings.map(l => ({
+    ...l,
+    _lat: l.lat ?? center.lat + getDeterministicOffset(String(l.id) + "lat") * 2,
+    _lng: l.lng ?? center.lng + getDeterministicOffset(String(l.id) + "lng") * 2,
+  })), [])
 
   const onLoadAutocomplete = (autocompleteInstance) => {
     setAutocomplete(autocompleteInstance)
@@ -85,7 +102,7 @@ export default function MapPage() {
         <div className="bg-white dark:bg-charcoal-900 p-2 rounded-2xl shadow-xl overflow-hidden border border-charcoal-200 dark:border-charcoal-800">
           {!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
             <div className="bg-yellow-100 text-yellow-800 p-4 mb-2 rounded-lg text-sm flex items-center justify-center">
-              Attention: La clé d'API Google Maps n'est pas définie dans .env.local. La carte affichera une erreur "For development purposes only".
+          Attention: La clé d&apos;API Google Maps n&apos;est pas définie dans .env.local. La carte affichera une erreur &quot;For development purposes only&quot;.
             </div>
           )}
 
@@ -128,16 +145,12 @@ export default function MapPage() {
                 ]
               }}
             >
-              {listings.map((listing) => {
-                // Generate a random lat/lng around center if none provided in mock data for demo purposes
-                const lat = listing.lat || center.lat + (Math.random() - 0.5) * 2;
-                const lng = listing.lng || center.lng + (Math.random() - 0.5) * 2;
-
+              {listingsWithCoords.map((listing) => {
                 return (
                   <Marker
                     key={listing.id}
-                    position={{ lat, lng }}
-                    onClick={() => setSelectedListing({ ...listing, lat, lng })}
+                    position={{ lat: listing._lat, lng: listing._lng }}
+                    onClick={() => setSelectedListing({ ...listing, lat: listing._lat, lng: listing._lng })}
                     icon={{
                       url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg width="32" height="32" viewBox="0 0 24 24" fill="#d65846" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'),
                       scaledSize: new window.google.maps.Size(40, 40)
@@ -152,10 +165,12 @@ export default function MapPage() {
                   onCloseClick={() => setSelectedListing(null)}
                 >
                   <div className="p-2 max-w-[200px] text-charcoal-900">
-                    <img 
-                      src={selectedListing.image} 
-                      alt={selectedListing.title} 
-                      className="w-full h-24 object-cover rounded-lg mb-2"
+                    <Image
+                      src={selectedListing.image}
+                      alt={selectedListing.title}
+                      fill
+                      className="object-cover rounded-lg"
+                      sizes="200px"
                     />
                     <h3 className="font-bold text-sm truncate">{selectedListing.title}</h3>
                     <p className="text-xs text-charcoal-600 truncate flex items-center gap-1 mb-2">

@@ -9,7 +9,7 @@ export default function ContactPage() {
   const { t } = useLanguage()
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-charcoal-50 to-white dark:from-charcoal-900 dark:to-charcoal-950 pt-24 pb-16">
+    <div className="min-h-screen bg-linear-to-b from-charcoal-50 to-white dark:from-charcoal-900 dark:to-charcoal-950 pt-24 pb-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <h1 className="text-4xl font-bold text-charcoal-900 dark:text-white mb-4">{t('contact_title')}</h1>

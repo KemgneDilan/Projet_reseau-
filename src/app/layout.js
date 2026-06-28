@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "Houses & Rooms & Services",
-  description: "Plateforme premium de location de chambres d'hôtes et services",
+  title: "Loomdaah - Ta maison est chez moi",
+  description: "Plateforme communautaire de partage d'hospitalité, d'échange de séjours et d'entraide.",
 };
 
 export default function RootLayout({ children }) {

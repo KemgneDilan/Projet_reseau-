@@ -6,7 +6,7 @@ import { Users, Building, Wrench, AlertTriangle, ShieldCheck, FileText, ChevronD
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-import { contracts, users, listings, services, houses, rooms } from '@/lib/mockData'
+import { contracts, users, listings, houses, rooms } from '@/lib/mockData'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 
@@ -28,13 +28,16 @@ export default function AdminDashboard() {
   const [kycRequests, setKycRequests] = React.useState([])
 
   React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedUsers = JSON.parse(localStorage.getItem('hrs_users') || '[]')
-      setUsersList(storedUsers)
-      
-      const storedRequests = JSON.parse(localStorage.getItem('hrs_kyc_requests') || '[]')
-      setKycRequests(storedRequests)
+    const loadData = () => {
+      if (typeof window !== 'undefined') {
+        const storedUsers = JSON.parse(localStorage.getItem('hrs_users') || '[]')
+        setUsersList(storedUsers)
+        
+        const storedRequests = JSON.parse(localStorage.getItem('hrs_kyc_requests') || '[]')
+        setKycRequests(storedRequests)
+      }
     }
+    loadData()
   }, [])
 
   const handleLogout = async () => {
@@ -169,7 +172,7 @@ export default function AdminDashboard() {
                   <ShieldCheck className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                   <div>
                     <h4 className="font-semibold text-purple-900 dark:text-purple-300">Demandes de validation KYC en attente</h4>
-                    <p className="text-sm text-purple-700 dark:text-purple-400">Il y a {pendingRequests.length} demande(s) en attente de vérification d'identité pour activation du statut Hôte.</p>
+                    <p className="text-sm text-purple-700 dark:text-purple-400">Il y a {pendingRequests.length} demande(s) en attente de vérification d&apos;identité pour activation du statut Hôte.</p>
                   </div>
                 </div>
                 <Button onClick={() => setActiveTab('kyc')} className="bg-purple-600 hover:bg-purple-700 text-white text-xs py-2 px-4 rounded-lg">
@@ -203,7 +206,7 @@ export default function AdminDashboard() {
                           <tr className={`hover:bg-charcoal-50/50 dark:hover:bg-charcoal-900/50 transition-colors ${isExpanded ? 'bg-charcoal-50/80 dark:bg-charcoal-900/80' : ''}`}>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-terracotta-400 to-orange-500 text-white flex justify-center items-center font-bold text-xs">
+                                <div className="h-8 w-8 rounded-full bg-linear-to-br from-terracotta-400 to-orange-500 text-white flex justify-center items-center font-bold text-xs">
                                   {u.username.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
@@ -365,7 +368,7 @@ export default function AdminDashboard() {
           <motion.div key="kyc" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <Card className="border border-charcoal-200 dark:border-charcoal-800 dark:bg-charcoal-900">
               <CardHeader>
-                <CardTitle className="dark:text-white">Demandes de validation d'identité (KYC)</CardTitle>
+                <CardTitle className="dark:text-white">Demandes de validation d&apos;identité (KYC)</CardTitle>
               </CardHeader>
               <CardContent className="p-0 overflow-x-auto">
                 {kycRequests.length === 0 ? (

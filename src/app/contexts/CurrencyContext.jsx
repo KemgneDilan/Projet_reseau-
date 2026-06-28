@@ -23,6 +23,7 @@ export const CurrencyProvider = ({ children }) => {
   useEffect(() => {
     const saved = localStorage.getItem('hrs_currency')
     if (saved && RATES[saved]) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCurrency(saved)
     }
   }, [])

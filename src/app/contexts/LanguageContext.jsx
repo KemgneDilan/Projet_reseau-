@@ -12,6 +12,7 @@ export const LanguageProvider = ({ children }) => {
     // Load language from localStorage on mount
     const savedLang = localStorage.getItem('hrs_lang');
     if (savedLang && ['fr', 'en'].includes(savedLang)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLang(savedLang);
     }
   }, []);

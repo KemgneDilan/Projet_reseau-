@@ -48,10 +48,10 @@ export function Navbar() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <div className="bg-gradient-to-br from-terracotta-500 to-orange-500 text-white p-2 rounded-lg">
+              <div className="bg-linear-to-br from-terracotta-500 to-orange-500 text-white p-2 rounded-lg">
                 <Home className="h-6 w-6" />
               </div>
-              <span className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-terracotta-600 to-orange-600 hidden sm:block">
+              <span className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-linear-to-r from-terracotta-600 to-orange-600 hidden sm:block">
                 Loomdaah
               </span>
             </Link>
@@ -103,7 +103,7 @@ export function Navbar() {
                       onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                       className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-charcoal-100 transition-colors"
                     >
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-terracotta-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm">
+                      <div className="h-8 w-8 rounded-full bg-linear-to-br from-terracotta-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm">
                         {user.username.charAt(0).toUpperCase()}
                       </div>
                       <span className="text-sm font-semibold text-charcoal-900 hidden lg:block max-w-[100px] truncate">

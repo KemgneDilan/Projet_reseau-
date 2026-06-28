@@ -25,22 +25,26 @@ function MessagesContent() {
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser)
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCurrentUser(parsed)
         
         // Load all users except current as potential contacts
         const loadedUsers = JSON.parse(localStorage.getItem('hrs_users') || JSON.stringify(mockUsers))
         const otherUsers = loadedUsers.filter(u => u.id !== parsed.id)
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setContacts(otherUsers)
 
         // Select initial contact if provided
         if (initialContactId) {
           const found = otherUsers.find(u => u.id === initialContactId)
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           if (found) setActiveContact(found)
         }
 
         // Load messages
         const storedMsgs = localStorage.getItem('hrs_messages')
         if (storedMsgs) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setMessages(JSON.parse(storedMsgs))
         } else {
           // Initialize some mock messages for demo
@@ -49,6 +53,7 @@ function MessagesContent() {
             { id: 2, senderId: 'u1', receiverId: 'u2', text: "Bonjour Jean ! Oui, à quelle heure pouvons-nous arriver ?", timestamp: Date.now() - 3000000 },
             { id: 3, senderId: 'u2', receiverId: 'u1', text: "Vous pouvez arriver à partir de 14h. Les clés seront dans le boîtier.", timestamp: Date.now() - 2400000 }
           ]
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setMessages(demoMsgs)
           localStorage.setItem('hrs_messages', JSON.stringify(demoMsgs))
         }
@@ -151,7 +156,7 @@ function MessagesContent() {
                   className={`p-4 cursor-pointer hover:bg-charcoal-50 dark:hover:bg-charcoal-800 flex gap-3 transition-colors ${activeContact?.id === contact.id ? 'bg-terracotta-50 dark:bg-terracotta-900/20 border-l-4 border-l-terracotta-500' : 'border-l-4 border-l-transparent'}`}
                 >
                   <div className="relative">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-charcoal-200 to-charcoal-300 dark:from-charcoal-700 dark:to-charcoal-800 flex items-center justify-center font-bold text-charcoal-700 dark:text-white shadow-sm border border-white dark:border-charcoal-800">
+                    <div className="w-12 h-12 rounded-full bg-linear-to-br from-charcoal-200 to-charcoal-300 dark:from-charcoal-700 dark:to-charcoal-800 flex items-center justify-center font-bold text-charcoal-700 dark:text-white shadow-sm border border-white dark:border-charcoal-800">
                       {contact.username.charAt(0).toUpperCase()}
                     </div>
                     {/* Status dot (simulated) */}
@@ -189,7 +194,7 @@ function MessagesContent() {
                   <button onClick={() => setActiveContact(null)} className="md:hidden p-2 -ml-2 text-charcoal-600 hover:bg-charcoal-100 rounded-full">
                     <ArrowLeft className="h-5 w-5" />
                   </button>
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-charcoal-200 to-charcoal-300 dark:from-charcoal-700 dark:to-charcoal-800 flex items-center justify-center font-bold text-charcoal-700 dark:text-white">
+                  <div className="w-10 h-10 rounded-full bg-linear-to-br from-charcoal-200 to-charcoal-300 dark:from-charcoal-700 dark:to-charcoal-800 flex items-center justify-center font-bold text-charcoal-700 dark:text-white">
                     {activeContact.username.charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -269,7 +274,7 @@ function MessagesContent() {
                   <Button 
                     type="submit" 
                     disabled={!messageText.trim()} 
-                    className={`h-[50px] w-[50px] rounded-full flex-shrink-0 flex items-center justify-center p-0 transition-all ${messageText.trim() ? 'bg-terracotta-500 hover:bg-terracotta-600 text-white shadow-md' : 'bg-charcoal-200 dark:bg-charcoal-800 text-charcoal-400'}`}
+                    className={`h-[50px] w-[50px] rounded-full shrink-0 flex items-center justify-center p-0 transition-all ${messageText.trim() ? 'bg-terracotta-500 hover:bg-terracotta-600 text-white shadow-md' : 'bg-charcoal-200 dark:bg-charcoal-800 text-charcoal-400'}`}
                   >
                     <Send className="h-5 w-5 ml-1" />
                   </Button>
@@ -282,7 +287,7 @@ function MessagesContent() {
                 <MessageSquare className="h-10 w-10 text-charcoal-300" />
               </div>
               <h2 className="text-2xl font-light text-charcoal-600 dark:text-charcoal-300 mb-2">Loomdaah Messenger</h2>
-              <p className="max-w-md">Sélectionnez une discussion dans le panneau de gauche pour commencer à envoyer des messages ou consulter l'historique.</p>
+              <p className="max-w-md">Sélectionnez une discussion dans le panneau de gauche pour commencer à envoyer des messages ou consulter l&apos;historique.</p>
             </div>
           )}
         </div>

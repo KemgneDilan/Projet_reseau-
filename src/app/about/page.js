@@ -173,7 +173,7 @@ export default function AboutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-charcoal-50 to-white dark:from-charcoal-900 dark:to-charcoal-950">
+    <div className="min-h-screen bg-linear-to-b from-charcoal-50 to-white dark:from-charcoal-900 dark:to-charcoal-950">
       {/* ── HERO ──────────────────────────────────────────── */}
       <section className="relative overflow-hidden py-28 md:py-36">
         <div
@@ -183,7 +183,7 @@ export default function AboutPage() {
               'url("https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1920&q=80")',
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-charcoal-900/75 to-charcoal-900/85" />
+        <div className="absolute inset-0 bg-linear-to-b from-charcoal-900/75 to-charcoal-900/85" />
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
           <motion.div
             initial={{ opacity: 0, y: -16 }}
@@ -202,7 +202,7 @@ export default function AboutPage() {
             className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight"
           >
             La plateforme qui{" "}
-            <span className="bg-gradient-to-r from-terracotta-400 to-orange-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-terracotta-400 to-orange-400 bg-clip-text text-transparent">
               réunit tout
             </span>
           </motion.h1>
@@ -212,7 +212,7 @@ export default function AboutPage() {
             transition={{ duration: 0.65, delay: 0.2 }}
             className="text-lg md:text-xl text-charcoal-100 max-w-2xl mx-auto"
           >
-            Loomdaah est la première plateforme unifiée d'hébergement et de
+            Loomdaah est la première plateforme unifiée d&apos;hébergement et de
             services en Afrique centrale. Hébergements, chefs, guides,
             chauffeurs — tout en un seul endroit.
           </motion.p>
@@ -258,7 +258,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── STATS ─────────────────────────────────────────── */}
-      <section className="py-16 bg-gradient-to-r from-charcoal-900 to-charcoal-800 text-white relative overflow-hidden">
+      <section className="py-16 bg-linear-to-r from-charcoal-900 to-charcoal-800 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-72 h-72 bg-terracotta-500 rounded-full blur-3xl" />
           <div className="absolute bottom-0 right-0 w-72 h-72 bg-orange-500 rounded-full blur-3xl" />
@@ -279,7 +279,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── CONTACT + MESSAGE ─────────────────────────────── */}
-      <section className="py-24 bg-gradient-to-b from-charcoal-50 to-white dark:from-charcoal-900 dark:to-charcoal-950">
+      <section className="py-24 bg-linear-to-b from-charcoal-50 to-white dark:from-charcoal-900 dark:to-charcoal-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div {...fadeUp()} className="text-center mb-16">
             <h2 className="text-4xl font-bold text-charcoal-900 dark:text-white mb-4">

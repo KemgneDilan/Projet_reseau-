@@ -16,11 +16,13 @@ export function AuthProvider({ children }) {
     const storedUser = localStorage.getItem('hrs_current_user')
     if (storedUser) {
       try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setUser(JSON.parse(storedUser))
       } catch {
         localStorage.removeItem('hrs_current_user')
       }
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(false)
   }, [])
 

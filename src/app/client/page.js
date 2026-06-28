@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import {
   Calendar,
@@ -17,7 +18,7 @@ import {
   Home,
   Settings,
 } from 'lucide-react'
-import { listings, services } from '@/lib/mockData'
+import { listings } from '@/lib/mockData'
 import { getReviewsFor, calculateAverageRating } from '@/lib/ratingUtils'
 import { Button } from '@/components/ui/Button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
@@ -62,38 +63,47 @@ export default function ClientDashboard() {
   const [ratingMap, setRatingMap] = React.useState({})
 
   React.useEffect(() => {
-    if (user) {
-      const userKey = `hrs_reservations_${user.id}`
-      const savedReservations = JSON.parse(localStorage.getItem(userKey) || '[]')
-      const merged = [...savedReservations]
-      mockReservations.forEach(mockRes => {
-        if (!merged.some(r => r.id === mockRes.id)) {
-          merged.push(mockRes)
-        }
-      })
-      setReservations(merged)
+    const loadReservations = () => {
+      if (user) {
+        const userKey = `hrs_reservations_${user.id}`
+        const savedReservations = JSON.parse(localStorage.getItem(userKey) || '[]')
+        const merged = [...savedReservations]
+        mockReservations.forEach(mockRes => {
+          if (!merged.some(r => r.id === mockRes.id)) {
+            merged.push(mockRes)
+          }
+        })
+        setReservations(merged)
+      }
     }
+    loadReservations()
   }, [user])
 
   React.useEffect(() => {
-    // Load favorites from local storage
-    const savedFavIds = JSON.parse(localStorage.getItem('hrs_favorites') || '[]')
-    const actualFavorites = savedFavIds.map(id => listings.find(l => l.id === id)).filter(Boolean)
-    setFavorites(actualFavorites)
+    const loadFavorites = () => {
+      // Load favorites from local storage
+      const savedFavIds = JSON.parse(localStorage.getItem('hrs_favorites') || '[]')
+      const actualFavorites = savedFavIds.map(id => listings.find(l => l.id === id)).filter(Boolean)
+      setFavorites(actualFavorites)
+    }
+    loadFavorites()
   }, [])
 
   React.useEffect(() => {
-    try {
-      const map = {}
-      listings.forEach(l => {
-        const rv = getReviewsFor('listing', l.id)
-        const avg = calculateAverageRating(rv.map(r => ({ rating: r.rating })))
-        if (avg) map[l.id] = avg
-      })
-      setRatingMap(map)
-    } catch (e) {
-      setRatingMap({})
+    const loadRatings = () => {
+      try {
+        const map = {}
+        listings.forEach(l => {
+          const rv = getReviewsFor('listing', l.id)
+          const avg = calculateAverageRating(rv.map(r => ({ rating: r.rating })))
+          if (avg) map[l.id] = avg
+        })
+        setRatingMap(map)
+      } catch (e) {
+        setRatingMap({})
+      }
     }
+    loadRatings()
   }, [])
 
   React.useEffect(() => {
@@ -196,7 +206,7 @@ export default function ClientDashboard() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className={`bg-gradient-to-br from-white to-charcoal-50 rounded-xl p-4 border border-charcoal-200 shadow-sm hover:shadow-md transition-shadow`}
+                className={`bg-linear-to-br from-white to-charcoal-50 rounded-xl p-4 border border-charcoal-200 shadow-sm hover:shadow-md transition-shadow`}
               >
                 <div className="flex items-center gap-4">
                   <div className={`p-3 rounded-lg bg-${stat.color}-100`}>
@@ -214,10 +224,10 @@ export default function ClientDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="reservations" className="mb-12">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="reservations">{t('tab_reservations')}</TabsTrigger>
             <TabsTrigger value="favoris">{t('tab_favorites')}</TabsTrigger>
-            <TabsTrigger value="messages">{t('tab_messages')}</TabsTrigger>
+
           </TabsList>
 
           {/* Reservations Tab */}
@@ -281,7 +291,7 @@ export default function ClientDashboard() {
                                 const m = Math.floor((remaining % 3600000) / 60000)
                                 return (
                                   <div className="text-center">
-                                    <p className="text-xs text-charcoal-500 mb-1">Réponse de l'hôte dans</p>
+                                    <p className="text-xs text-charcoal-500 mb-1">Réponse de l&apos;hôte dans</p>
                                     <p className="text-lg font-bold text-orange-600 tabular-nums">{h}h {m}m</p>
                                   </div>
                                 )
@@ -306,10 +316,12 @@ export default function ClientDashboard() {
                             {reservation.photos?.map((photo, pIdx) => (
                               <div key={pIdx} className="w-16 h-16 rounded-lg overflow-hidden border border-charcoal-200 bg-charcoal-50 flex items-center justify-center shrink-0 shadow-sm relative group">
                                 {photo.data && photo.data !== 'placeholder' ? (
-                                  <img
+                                  <Image
                                     src={photo.data}
                                     alt={photo.name}
-                                    className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
+                                    fill
+                                    unoptimized
+                                    className="object-cover cursor-pointer hover:scale-105 transition-transform"
                                     onClick={() => {
                                       const w = window.open()
                                       w.document.write(`<img src="${photo.data}" style="max-width:100%; max-height:100%; display:block; margin:auto;" />`)
@@ -401,10 +413,12 @@ export default function ClientDashboard() {
                       <Link href={`/listings/${listing.id}`}>
                         <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow cursor-pointer h-full flex flex-col">
                           <div className="relative h-48 overflow-hidden bg-charcoal-100 group">
-                            <img
+                            <Image
                               src={listing.image}
                               alt={listing.title}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              fill
+                              unoptimized
+                              className="object-cover group-hover:scale-110 transition-transform duration-300"
                             />
                             <button className="absolute top-3 right-3 p-2 rounded-full bg-white shadow-md hover:bg-red-50 transition-colors">
                               <Heart className="h-5 w-5 fill-red-500 text-red-500" />
@@ -464,90 +478,6 @@ export default function ClientDashboard() {
                       {t('fav_empty_btn')}
                     </Button>
                   </Link>
-                </div>
-              )}
-            </motion.div>
-          </TabsContent>
-
-          {/* Services Tab */}
-          <TabsContent value="services">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <h2 className="text-2xl font-bold text-charcoal-900 mb-6">{t('tab_services')}</h2>
-              
-              {/* Mock booked services */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {services.slice(0, 3).map((service, idx) => {
-                  const serviceBooking = {
-                    id: service.id,
-                    title: service.title,
-                    date: '2025-04-12',
-                    status: 'completed',
-                  }
-
-                  return (
-                    <motion.div
-                      key={service.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow border border-charcoal-100"
-                    >
-                      <div className="h-40 overflow-hidden bg-charcoal-200">
-                        {service.images && service.images[0] ? (
-                          <img src={service.images[0]} alt={service.title} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-terracotta-100 to-orange-100">
-                            <span className="text-charcoal-400">Service</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="p-4">
-                        <h3 className="font-bold text-charcoal-900 mb-2">{service.title}</h3>
-                        <p className="text-sm text-charcoal-600 mb-3 line-clamp-2">{service.description}</p>
-
-                        <div className="flex items-center gap-2 mb-4">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="font-semibold text-charcoal-900">
-                            {(() => {
-                              try {
-                                const rv = getReviewsFor('service', service.id)
-                                const avg = calculateAverageRating(rv.map(r => ({ rating: r.rating })))
-                                return (avg || service.rating || 0).toFixed(1)
-                              } catch (e) {
-                                return (service.rating || 0).toFixed(1)
-                              }
-                            })()}
-                          </span>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" className="flex-1">
-                            {t('res_details')}
-                          </Button>
-                          <RatingButton
-                            item={{ id: service.id, title: service.title }}
-                            type="service"
-                            isCompleted={serviceBooking.status === 'completed'}
-                            onRatingSubmitted={(review) => {
-                              console.log('Service review submitted:', review)
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </motion.div>
-                  )
-                })}
-              </div>
-
-              {services.slice(0, 3).length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-charcoal-600 text-lg">
-                    {t('services_wip')}
-                  </p>
                 </div>
               )}
             </motion.div>

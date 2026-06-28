@@ -1,6 +1,7 @@
 "use client"
 import * as React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { motion } from "framer-motion"
 import {
   ArrowRight,
@@ -17,7 +18,6 @@ import {
 import { Button } from "@/components/ui/Button"
 import { ListingCard } from "@/components/features/ListingCard"
 import { listings } from "@/lib/mockData"
-import { services } from "@/lib/mockData"
 import { getReviewsFor, calculateAverageRating } from '@/lib/ratingUtils'
 
 export default function Home() {
@@ -35,7 +35,7 @@ export default function Home() {
               'url("https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1920&q=80")',
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-charcoal-900/70 via-charcoal-900/60 to-charcoal-900/50 z-10" />
+        <div className="absolute inset-0 bg-linear-to-b from-charcoal-900/70 via-charcoal-900/60 to-charcoal-900/50 z-10" />
 
         <div className="relative z-20 text-center px-4 max-w-5xl mx-auto w-full">
           <motion.div
@@ -121,7 +121,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 bg-gradient-to-b from-charcoal-50 to-white">
+      <section className="py-24 bg-linear-to-b from-charcoal-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -139,8 +139,8 @@ export default function Home() {
           </motion.div>
 
           <div className="overflow-hidden relative w-full py-4">
-            <div className="absolute inset-y-0 left-0 w-16 md:w-32 bg-gradient-to-r from-charcoal-50 to-transparent z-10" />
-            <div className="absolute inset-y-0 right-0 w-16 md:w-32 bg-gradient-to-l from-charcoal-50 to-transparent z-10" />
+            <div className="absolute inset-y-0 left-0 w-16 md:w-32 bg-linear-to-r from-charcoal-50 to-transparent z-10" />
+            <div className="absolute inset-y-0 right-0 w-16 md:w-32 bg-linear-to-l from-charcoal-50 to-transparent z-10" />
 
             {/* Défilement continu horizontal (Marquee) */}
             <motion.div
@@ -151,7 +151,7 @@ export default function Home() {
               {(() => {
                 const features = [
                   { icon: MapPin, title: "Une offre complète", description: "Trouvez votre hébergement et tous les services nécessaires en un seul endroit.", color: "terracotta" },
-                  { icon: ShieldCheck, title: "Sécurité garantie", description: "Tous nos partenaires sont vérifiés pour assurer votre tranquillité d'esprit.", color: "green" },
+                  { icon: ShieldCheck, title: "Sécurité garantie", description: "Tous nos partenaires sont vérifiés pour assurer votre tranquillité d&apos;esprit.", color: "green" },
                   { icon: Zap, title: "Réservation rapide", description: "Confirmez votre réservation en quelques clics, paiement sécurisé en ligne.", color: "yellow" },
                   { icon: Globe, title: "Multi-devises", description: "Payez dans votre devise préférée avec conversion automatique.", color: "blue" },
                   { icon: Users, title: "Support 24/7", description: "Notre équipe est toujours disponible pour répondre à vos questions.", color: "purple" },
@@ -227,7 +227,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Services Section */}
+      {/* Section : Logements avec expériences intégrées */}
       <section className="py-24 bg-charcoal-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -237,66 +237,49 @@ export default function Home() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl font-bold text-charcoal-900 mb-4">
-              Nos services premium
+              Des logements chargés d&apos;expériences
             </h2>
             <p className="text-charcoal-600 max-w-2xl mx-auto">
-              Complétez votre séjour avec nos services exclusifs : chauffeurs, chefs privés, guides touristiques, et bien plus
+              Chaque logement sur Loomdaah vient avec des activités et partages offerts par votre hôte, inclus dans l&apos;échange communautaire.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.slice(0, 6).map((service, idx) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {listings.slice(0, 3).filter(l => l.communityServices?.length > 0).map((listing, idx) => (
               <motion.div
-                key={service.id}
+                key={listing.id}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow border border-charcoal-100"
+                className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all border border-charcoal-100 group"
               >
-                <div className="h-48 overflow-hidden bg-charcoal-200 relative">
-                  {service.images && service.images[0] ? (
-                    <img src={service.images[0]} alt={service.title} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-terracotta-100 to-orange-100">
-                      <span className="text-charcoal-400">Service</span>
-                    </div>
-                  )}
-                  <div className="absolute top-3 right-3 bg-white rounded-full px-3 py-1 text-sm font-semibold text-charcoal-900 shadow">
-                    {service.category}
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-lg font-bold text-charcoal-900 mb-2 line-clamp-2">
-                    {service.title}
-                  </h3>
-                  <p className="text-sm text-charcoal-600 mb-4 line-clamp-2">
-                    {service.description}
-                  </p>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-1 text-sm">
-                      <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                      <span className="font-semibold text-charcoal-900">
-                        {(() => {
-                          try {
-                            const reviews = getReviewsFor('service', service.id)
-                            const avg = calculateAverageRating(reviews.map(r => ({ rating: r.rating })))
-                            return (avg || service.rating || 0).toFixed(1)
-                          } catch (e) {
-                            return (service.rating || 0).toFixed(1)
-                          }
-                        })()}
-                      </span>
-                    </div>
-                    <span className="font-bold text-terracotta-600">
-                      {service.price} XAF
+                <div className="h-44 overflow-hidden bg-charcoal-200 relative">
+                  <Image
+                    src={listing.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267'}
+                    alt={listing.title}
+                    fill
+                    unoptimized
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
+                  <div className="absolute bottom-3 left-3">
+                    <span className="bg-terracotta-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      {listing.communityServices.length} expérience{listing.communityServices.length > 1 ? 's' : ''} offertes
                     </span>
                   </div>
-                  <Link href="/login">
-                    <Button size="sm" className="w-full">
-                      Réserver ce service
-                    </Button>
-                  </Link>
+                </div>
+                <div className="p-5">
+                  <h3 className="font-bold text-charcoal-900 mb-2 line-clamp-1">{listing.title}</h3>
+                  <p className="text-xs text-charcoal-500 mb-3">📍 {listing.location}</p>
+                  <ul className="space-y-1.5">
+                    {listing.communityServices.map(cs => (
+                      <li key={cs.id} className="text-sm text-charcoal-700 flex items-start gap-2">
+                        <span className="text-terracotta-500 mt-0.5">🤝</span>
+                        <span className="line-clamp-1">{cs.title}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </motion.div>
             ))}
@@ -308,9 +291,9 @@ export default function Home() {
             viewport={{ once: true }}
             className="mt-12 text-center"
           >
-            <Link href="/login">
-              <Button size="lg" variant="outline" className="rounded-full">
-                Explorer tous les services
+            <Link href="/register">
+              <Button size="lg" className="rounded-full">
+                Rejoindre la communauté
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
@@ -375,7 +358,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-r from-charcoal-900 to-charcoal-800 text-white relative overflow-hidden">
+      <section className="py-24 bg-linear-to-r from-charcoal-900 to-charcoal-800 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-96 h-96 bg-terracotta-500 rounded-full blur-3xl" />
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-500 rounded-full blur-3xl" />
@@ -388,7 +371,7 @@ export default function Home() {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Prêt pour l'aventure ?
+              Prêt pour l&apos;aventure ?
             </h2>
             <p className="text-xl text-white/80 mb-8">
               Rejoignez des milliers de voyageurs satisfaits et réservez dès

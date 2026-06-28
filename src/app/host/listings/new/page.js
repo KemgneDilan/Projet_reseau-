@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 const containerStyle = {
   width: '100%',
@@ -404,7 +405,7 @@ export default function NewListingPage() {
                     </div>
                     {listingKind === 'house' && (
                       <p className="text-xs text-charcoal-500 mt-2">
-                        Le tarif global s'applique à l'ensemble de la maison. Vous décrirez ensuite les pièces qui la composent.
+                        Le tarif global s&apos;applique à l&apos;ensemble de la maison. Vous décrirez ensuite les pièces qui la composent.
                       </p>
                     )}
                   </div>
@@ -586,7 +587,7 @@ export default function NewListingPage() {
                             ? "bg-terracotta-500 border-terracotta-500 text-white"
                             : "border-charcoal-300 dark:border-charcoal-600 bg-transparent"
                         }`}>
-                          {isChecked && <Check className="h-3.5 w-3.5 stroke-[3]" />}
+                          {isChecked && <Check className="h-3.5 w-3.5 stroke-3" />}
                         </div>
                         <span className="text-sm font-medium">{amenity}</span>
                       </label>
@@ -648,10 +649,12 @@ export default function NewListingPage() {
                       key={index}
                       className="group relative aspect-square rounded-xl overflow-hidden border border-charcoal-200 dark:border-charcoal-800 shadow-sm"
                     >
-                      <img
+                      <Image
                         src={imgSrc}
                         alt={`Aperçu ${index + 1}`}
-                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                        fill
+                        unoptimized
+                        className="object-cover transition-transform group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button
